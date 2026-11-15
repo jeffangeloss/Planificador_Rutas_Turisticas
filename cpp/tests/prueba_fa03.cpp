@@ -35,6 +35,12 @@ Reserva enEspera(const string &codigo, const string &solicitud, int personas,
                  EstadoReserva::EnEspera, orden);
 }
 
+// Carpeta de trabajo de una prueba dentro del directorio actual (con ctest, la
+// carpeta de compilacion) y no en el directorio temporal compartido del sistema.
+filesystem::path carpetaDePrueba(const string &nombre) {
+  return filesystem::current_path() / ("prueba_fa03_" + nombre);
+}
+
 const Reserva *buscar(const AgendaCupos &agenda, const string &codigo) {
   for (const Reserva &reserva : agenda.getReservas()) {
     if (reserva.getCodigo() == codigo) return &reserva;
@@ -171,7 +177,7 @@ void probarValidaciones() {
 }
 
 void probarArchivos() {
-  const filesystem::path carpeta = filesystem::temp_directory_path() / "prueba_fa03";
+  const filesystem::path carpeta = carpetaDePrueba("archivos");
   filesystem::remove_all(carpeta);
   filesystem::create_directories(carpeta);
   ArchivosCSV archivos(carpeta.string());
@@ -226,7 +232,7 @@ void probarCodigosGrandes() {
 }
 
 void probarCargaDefensiva() {
-  const filesystem::path carpeta = filesystem::temp_directory_path() / "prueba_fa03_carga";
+  const filesystem::path carpeta = carpetaDePrueba("carga");
   filesystem::remove_all(carpeta);
   filesystem::create_directories(carpeta);
   ofstream cupos((carpeta / "cupos.csv").string(), ios::binary);

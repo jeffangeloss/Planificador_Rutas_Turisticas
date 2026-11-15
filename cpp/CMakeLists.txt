@@ -34,4 +34,5 @@ target_link_libraries(turismo_cpp PRIVATE turismo_lib)
 enable_testing()
 add_executable(prueba_fa03 tests/prueba_fa03.cpp)
 target_link_libraries(prueba_fa03 PRIVATE turismo_lib)
-add_test(NAME prueba_fa03 COMMAND prueba_fa03)
+add_test(NAME prueba_fa03 COMMAND prueba_fa03
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
