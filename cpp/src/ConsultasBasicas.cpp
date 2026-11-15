@@ -1,3 +1,7 @@
+// Grupo 4: ruta turística en Lima. Módulo imperativo (sección 4.1).
+// 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
+// Enunciado 4.1.6: consultar la información turística registrada en los CSV.
+
 #include "ConsultasBasicas.h"
 
 #include "ArchivosCSV.h"
@@ -23,8 +27,10 @@ private:
     string respuesta;
     while (true) {
       cout << mensaje;
-      if (!getline(cin, respuesta)) return "";
-      if (respuesta.find(',') == string::npos) return respuesta;
+      if (!getline(cin, respuesta))
+        return "";
+      if (respuesta.find(',') == string::npos)
+        return respuesta;
       cout << "No uses comas.\n";
     }
   }
@@ -32,14 +38,16 @@ private:
   string mayusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
-      resultado[i] = static_cast<char>(toupper(static_cast<unsigned char>(resultado[i])));
+      resultado[i] =
+          static_cast<char>(toupper(static_cast<unsigned char>(resultado[i])));
     }
     return resultado;
   }
 
   void mostrarNoEncontrado(bool encontrado, const string &tipo,
                            const string &codigo) const {
-    if (!encontrado) cout << "No se encontro " << tipo << " " << codigo << ".\n";
+    if (!encontrado)
+      cout << "No se encontro " << tipo << " " << codigo << ".\n";
   }
 
   void mostrarSolicitud(const Solicitud &solicitud) const {
@@ -57,7 +65,7 @@ private:
 
   void consultarPunto() const {
     vector<Punto> puntos = archivosCSV.getPuntos();
-    string codigo = mayusculas(leerTexto("Codigo del punto: "));
+    string codigo = mayusculas(leerTexto("Codigo del punto (Ej: P001): "));
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
       if (puntos[i].getCodigo() == codigo) {
@@ -72,7 +80,8 @@ private:
 
   void consultarConexion() const {
     vector<Conexion> conexiones = archivosCSV.getConexiones();
-    string codigo = mayusculas(leerTexto("Codigo de la conexion: "));
+    string codigo =
+        mayusculas(leerTexto("Codigo de la conexion (Ej: C001) : "));
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(conexiones.size()); ++i) {
       if (conexiones[i].getCodigo() == codigo) {
@@ -90,7 +99,7 @@ private:
 
   void consultarUnidad() const {
     vector<Unidad> unidades = archivosCSV.getUnidades();
-    string codigo = mayusculas(leerTexto("Codigo de la unidad: "));
+    string codigo = mayusculas(leerTexto("Codigo de la unidad (Ej: U001): "));
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
       if (unidades[i].getCodigo() == codigo) {
@@ -107,7 +116,8 @@ private:
 
   void consultarSolicitud() const {
     vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
-    string codigo = mayusculas(leerTexto("Codigo de la solicitud: "));
+    string codigo =
+        mayusculas(leerTexto("Codigo de la solicitud (Ej: S001): "));
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
       if (solicitudes[i].getCodigo() == codigo) {
@@ -125,11 +135,16 @@ public:
     cout << "\n=== Consultas basicas ===\n"
          << "1. Punto\n2. Conexion\n3. Unidad\n4. Solicitud\n0. Volver\n";
     string opcion = leerTexto("Opcion: ");
-    if (opcion == "1") consultarPunto();
-    else if (opcion == "2") consultarConexion();
-    else if (opcion == "3") consultarUnidad();
-    else if (opcion == "4") consultarSolicitud();
-    else if (opcion != "0") cout << "Opcion invalida.\n";
+    if (opcion == "1")
+      consultarPunto();
+    else if (opcion == "2")
+      consultarConexion();
+    else if (opcion == "3")
+      consultarUnidad();
+    else if (opcion == "4")
+      consultarSolicitud();
+    else if (opcion != "0")
+      cout << "Opcion invalida.\n";
   }
 };
 

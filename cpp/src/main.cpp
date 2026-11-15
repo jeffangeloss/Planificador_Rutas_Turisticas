@@ -1,3 +1,8 @@
+// Grupo 4: ruta turística en Lima. Módulo imperativo (sección 4.1).
+// 4.1.1 Menú principal. Responsable: Samantha Rodriguez.
+// Este archivo integra el flujo general y delega cada opción a su módulo
+// correspondiente.
+
 #include "ArchivosCSV.h"
 #include "ConsultasBasicas.h"
 #include "FA01.h"
@@ -31,6 +36,7 @@ public:
            << "6. Abrir modulo Prolog\n"
            << "7. Registrar datos para FA01\n"
            << "8. Cotizar plan turistico FA02\n"
+           << "9. Reservas de cupo por lista de espera FA03\n"
            << "0. Salir\n"
            << "Opcion: ";
       getline(cin, opcion);
@@ -40,8 +46,10 @@ public:
       } else if (opcion == "2") {
         ejecutarGestionEstados(archivosCSV);
       } else if (opcion == "3") {
+        // 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
         ejecutarConsultasBasicas(archivosCSV);
       } else if (opcion == "4") {
+        // 4.1.7 Reporte general. Responsable: Samantha Rodriguez.
         mostrarReporteGeneral(archivosCSV);
       } else if (opcion == "5") {
         abrirHaskell();
@@ -52,6 +60,9 @@ public:
       } else if (opcion == "8") {
         ejecutarFA02(carpetaDatos);
         archivosCSV.actualizarDatos();
+      } else if (opcion == "9") {
+        cout << "El modulo de reservas de cupo por lista de espera corresponde "
+                "a su modulo.\n";
       } else if (opcion == "0") {
         cout << "Programa finalizado.\n";
       } else {

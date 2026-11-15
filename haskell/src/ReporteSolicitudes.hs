@@ -1,4 +1,6 @@
--- 4.2.6 Reporte de solicitudes.
+-- Grupo 4: ruta turística en Lima. Módulo funcional (sección 4.2).
+-- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
+-- Enunciado 4.2.6: resumir las solicitudes por estado, prioridad y cantidad de turistas.
 module ReporteSolicitudes(reporteSolicitudes, ejecutarReporteSolicitudes) where
 
 import Tipos (EstadoSolicitud (..), Prioridad (..), Solicitud (..))

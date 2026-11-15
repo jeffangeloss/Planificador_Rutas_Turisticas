@@ -26,7 +26,9 @@ ejecutarOpcion :: String -> [Conexion] -> [Solicitud] -> IO ()
 ejecutarOpcion "1" conexiones _ = ejecutarVecinos conexiones
 ejecutarOpcion "2" conexiones _ = ejecutarRutas conexiones
 ejecutarOpcion "3" conexiones _ = ejecutarCostoRuta conexiones
+-- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
 ejecutarOpcion "4" _ solicitudes = ejecutarReporteSolicitudes solicitudes
+-- 4.2.7 Resultado esperado. Responsable: Samantha Rodriguez.
 ejecutarOpcion "5" conexiones solicitudes = do
   putStrLn "=== Resultado esperado ==="
   putStrLn ("Vecinos habilitados de P002: " ++ show (vecinos "P002" conexiones))

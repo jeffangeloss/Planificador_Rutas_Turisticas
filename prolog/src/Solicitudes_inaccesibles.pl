@@ -1,3 +1,6 @@
+% Grupo 4: ruta turística en Lima. Módulo lógico (sección 4.3).
+% 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
+% Enunciado 4.3.6: identificar solicitudes cuyo origen no alcanza su destino.
 % 4.3.6 Solicitudes cuyo origen no puede alcanzar su destino.
 :- module(solicitudes_inaccesibles, [
     ejecutar_solicitudes_inaccesibles/0,

@@ -23,12 +23,16 @@ alcanzable(Origen, Destino) :-
 
 % 4.3.4 Ruta por conexiones habilitadas que evita un punto.
 % La lista devuelta contiene el origen y el destino.
+% 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
+% Busca una ruta habilitada sin pasar por el punto excluido.
 ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
     Origen \= PuntoEvitado,
     Destino \= PuntoEvitado,
     buscar_ruta(Origen, Destino, PuntoEvitado, [Origen], RutaInvertida),
     reverse(RutaInvertida, Ruta).
 
+% Auxiliar de 4.3.4. Responsable: Samantha Rodriguez.
+% Caso base: el destino es vecino del punto actual.
 buscar_ruta(Actual, Destino, _, Visitados, [Destino|Visitados]) :-
     conectado(Actual, Destino, _),
     \+ member(Destino, Visitados).
@@ -71,6 +75,8 @@ ejecutar_alcanzabilidad :-
     ;   format('[NO] ~w no es alcanzable desde ~w.~n', [Destino, Origen])
     ).
 
+% Interfaz de 4.3.4. Responsable: Samantha Rodriguez.
+% Solicita los códigos y muestra si se encontró la ruta.
 ejecutar_ruta_evitando :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),

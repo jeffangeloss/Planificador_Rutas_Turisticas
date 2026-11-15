@@ -1,3 +1,7 @@
+// Grupo 4: ruta turística en Lima. Módulo imperativo (sección 4.1).
+// 4.1.7 Reporte general. Responsable: Samantha Rodriguez.
+// Enunciado 4.1.7: resumir los totales y estados de los datos del sistema.
+
 #include "ReporteGeneral.h"
 
 #include "ArchivosCSV.h"
