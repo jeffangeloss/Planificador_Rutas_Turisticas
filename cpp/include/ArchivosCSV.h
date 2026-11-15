@@ -68,6 +68,9 @@ public:
   bool guardarPlanFA02(const std::vector<Unidad> &nuevasUnidades,
                        const std::vector<Solicitud> &nuevasSolicitudes,
                        const std::vector<Visitante> &visitantes) const;
+  bool guardarPuntos(const std::vector<Punto> &puntosActualizados) const;
+  bool guardarConexiones(
+      const std::vector<Conexion> &conexionesActualizadas) const;
 };
 
 #endif

@@ -1,9 +1,13 @@
 #include "ArchivosCSV.h"
 
+#include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
+#include <system_error>
 
 using namespace std;
 
@@ -327,6 +331,67 @@ string ArchivosCSV::textoEstadoSolicitud(EstadoSolicitud estado) const {
 bool ArchivosCSV::archivoExiste(const string &nombre) const {
   ifstream archivo(rutaArchivo(nombre).c_str());
   return static_cast<bool>(archivo);
+}
+
+namespace {
+
+template <typename EscribirFilas>
+bool guardarCSV(const filesystem::path &destino, EscribirFilas escribirFilas) {
+  const auto marca = chrono::steady_clock::now().time_since_epoch().count();
+  const filesystem::path carpetaTemporal = destino.parent_path() /
+      (destino.stem().string() + ".tmp." + to_string(marca));
+  error_code error;
+  if (!filesystem::create_directory(carpetaTemporal, error)) return false;
+
+  const auto temporal = carpetaTemporal / destino.filename();
+  ofstream archivo(temporal, ios::binary);
+  if (!archivo) {
+    filesystem::remove(carpetaTemporal, error);
+    return false;
+  }
+
+  escribirFilas(archivo);
+  archivo.close();
+
+  if (archivo) {
+    filesystem::rename(temporal, destino, error);
+  }
+  const bool guardado = archivo && !error;
+  filesystem::remove(temporal, error);
+  filesystem::remove(carpetaTemporal, error);
+  return guardado;
+}
+
+} // namespace
+
+// 4.1.5 Generacion de archivos CSV. Responsable: Jefferson Sanchez.
+bool ArchivosCSV::guardarPuntos(
+    const vector<Punto> &puntosActualizados) const {
+  return guardarCSV(rutaArchivo("puntos.csv"),
+                   [this, &puntosActualizados](ostream &archivo) {
+    archivo << "codigo,nombre,tipo,zona\n";
+    for (const Punto &punto : puntosActualizados) {
+      archivo << punto.getCodigo() << ',' << punto.getNombre() << ','
+              << textoTipoPunto(punto.getTipo()) << ',' << punto.getZona()
+              << '\n';
+    }
+  });
+}
+
+// 4.1.5 Guardado de conexiones. Responsable: Jefferson Sanchez.
+bool ArchivosCSV::guardarConexiones(
+    const vector<Conexion> &conexionesActualizadas) const {
+  return guardarCSV(rutaArchivo("conexiones.csv"),
+                   [this, &conexionesActualizadas](ostream &archivo) {
+    archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n"
+            << setprecision(numeric_limits<double>::max_digits10);
+    for (const Conexion &conexion : conexionesActualizadas) {
+      archivo << conexion.getCodigo() << ',' << conexion.getOrigen() << ','
+              << conexion.getDestino() << ',' << conexion.getDistancia() << ','
+              << conexion.getTiempo() << ','
+              << textoEstadoConexion(conexion.getEstado()) << '\n';
+    }
+  });
 }
 
 bool ArchivosCSV::guardarPlanFA02(
