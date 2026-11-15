@@ -22,9 +22,12 @@ private:
     string respuesta;
     while (true) {
       cout << mensaje;
-      if (!getline(cin, respuesta)) return "";
-      if (respuesta.find(',') == string::npos) return respuesta;
-      cout << "No uses comas. Si son varios valores, separalos con punto y coma.\n";
+      if (!getline(cin, respuesta))
+        return "";
+      if (respuesta.find(',') == string::npos)
+        return respuesta;
+      cout << "No uses comas. Si son varios valores, separalos con punto y "
+              "coma.\n";
     }
   }
 
@@ -45,11 +48,13 @@ private:
 
   bool leerFilas(const string &nombre, vector<string> &filas) const {
     ifstream archivo(rutaArchivo(nombre).c_str());
-    if (!archivo) return false;
+    if (!archivo)
+      return false;
     string linea;
     getline(archivo, linea);
     while (getline(archivo, linea)) {
-      if (linea != "") filas.push_back(linea);
+      if (linea != "")
+        filas.push_back(linea);
     }
     return true;
   }
@@ -57,7 +62,8 @@ private:
   string minusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
-      resultado[i] = static_cast<char>(tolower(static_cast<unsigned char>(resultado[i])));
+      resultado[i] =
+          static_cast<char>(tolower(static_cast<unsigned char>(resultado[i])));
     }
     return resultado;
   }
@@ -65,7 +71,8 @@ private:
   string mayusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
-      resultado[i] = static_cast<char>(toupper(static_cast<unsigned char>(resultado[i])));
+      resultado[i] =
+          static_cast<char>(toupper(static_cast<unsigned char>(resultado[i])));
     }
     return resultado;
   }
@@ -73,10 +80,13 @@ private:
   string limpiarEspacios(const string &texto) const {
     int inicio = 0;
     int fin = static_cast<int>(texto.size()) - 1;
-    while (inicio <= fin && (texto[inicio] == ' ' || texto[inicio] == '\t')) inicio++;
-    while (fin >= inicio && (texto[fin] == ' ' || texto[fin] == '\t')) fin--;
+    while (inicio <= fin && (texto[inicio] == ' ' || texto[inicio] == '\t'))
+      inicio++;
+    while (fin >= inicio && (texto[fin] == ' ' || texto[fin] == '\t'))
+      fin--;
     string resultado;
-    for (int i = inicio; i <= fin; ++i) resultado += texto[i];
+    for (int i = inicio; i <= fin; ++i)
+      resultado += texto[i];
     return resultado;
   }
 
@@ -86,7 +96,8 @@ private:
     for (int i = 0; i <= static_cast<int>(texto.size()); ++i) {
       if (i == static_cast<int>(texto.size()) || texto[i] == ';') {
         string limpio = limpiarEspacios(valor);
-        if (limpio != "") valores.push_back(minusculas(limpio));
+        if (limpio != "")
+          valores.push_back(minusculas(limpio));
         valor = "";
       } else {
         valor += texto[i];
@@ -97,10 +108,12 @@ private:
 
   bool existeCodigo(const string &archivo, const string &codigo) const {
     vector<string> filas;
-    if (!leerFilas(archivo, filas)) return false;
+    if (!leerFilas(archivo, filas))
+      return false;
     for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
       vector<string> campos = separarCampos(filas[i]);
-      if (campos.size() > 0 && campos[0] == codigo) return true;
+      if (campos.size() > 0 && campos[0] == codigo)
+        return true;
     }
     return false;
   }
@@ -117,10 +130,12 @@ private:
         actualizada = true;
       }
     }
-    if (!actualizada) filas.push_back(nuevaFila);
+    if (!actualizada)
+      filas.push_back(nuevaFila);
 
     ofstream archivo(rutaArchivo(nombre).c_str());
-    if (!archivo) return false;
+    if (!archivo)
+      return false;
     archivo << encabezado << "\n";
     for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
       archivo << filas[i] << "\n";
@@ -144,7 +159,8 @@ private:
       nuevasFilas.push_back(codigo + "," + valores[i]);
     }
     ofstream archivo(rutaArchivo(nombre).c_str());
-    if (!archivo) return;
+    if (!archivo)
+      return;
     archivo << encabezado << "\n";
     for (int i = 0; i < static_cast<int>(nuevasFilas.size()); ++i) {
       archivo << nuevasFilas[i] << "\n";
@@ -154,15 +170,18 @@ private:
   string leerSiNo(const string &pregunta) const {
     while (true) {
       string respuesta = minusculas(leerTexto(pregunta + " (si/no): "));
-      if (respuesta == "si" || respuesta == "no") return respuesta;
+      if (respuesta == "si" || respuesta == "no")
+        return respuesta;
       cout << "Escribe si o no.\n";
     }
   }
 
   bool horaValida(const string &hora) const {
-    if (hora.size() != 5 || hora[2] != ':') return false;
+    if (hora.size() != 5 || hora[2] != ':')
+      return false;
     for (int i = 0; i < 5; ++i) {
-      if (i != 2 && !isdigit(static_cast<unsigned char>(hora[i]))) return false;
+      if (i != 2 && !isdigit(static_cast<unsigned char>(hora[i])))
+        return false;
     }
     int horas = (hora[0] - '0') * 10 + (hora[1] - '0');
     int minutos = (hora[3] - '0') * 10 + (hora[4] - '0');
@@ -212,10 +231,11 @@ private:
       cout << "Ingresa horarios validos en formato HH:MM.\n";
       return;
     }
-    string fila = codigo + "," + movilidad + "," + ninos + "," + seguroDia + "," +
-                  seguroNoche + "," + inicio + "," + fin;
+    string fila = codigo + "," + movilidad + "," + ninos + "," + seguroDia +
+                  "," + seguroNoche + "," + inicio + "," + fin;
     if (!guardarFila("caracteristicas_puntos.csv",
-                     "codigo,accesible_movilidad,apto_ninos,seguro_dia,seguro_noche,horario_inicio,horario_fin",
+                     "codigo,accesible_movilidad,apto_ninos,seguro_dia,seguro_"
+                     "noche,horario_inicio,horario_fin",
                      codigo, fila)) {
       cout << "No se pudieron guardar las caracteristicas.\n";
       return;
@@ -254,11 +274,16 @@ public:
            << "3. Registrar accesibilidad de una conexion\n"
            << "0. Volver\n";
       string opcion = leerTexto("Opcion: ");
-      if (opcion == "1") registrarPerfil();
-      else if (opcion == "2") registrarCaracteristicasPunto();
-      else if (opcion == "3") registrarAccesibilidadConexion();
-      else if (opcion != "0") cout << "Opcion invalida.\n";
-      if (opcion == "0") break;
+      if (opcion == "1")
+        registrarPerfil();
+      else if (opcion == "2")
+        registrarCaracteristicasPunto();
+      else if (opcion == "3")
+        registrarAccesibilidadConexion();
+      else if (opcion != "0")
+        cout << "Opcion invalida.\n";
+      if (opcion == "0")
+        break;
     }
   }
 };
@@ -269,5 +294,3 @@ void ejecutarFA01(const string &carpetaDatos) {
   RegistroFA01 modulo(carpetaDatos);
   modulo.ejecutar();
 }
-
-
