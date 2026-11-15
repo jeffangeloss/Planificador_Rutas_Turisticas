@@ -1,0 +1,17 @@
+CompileFlags:
+  Add:
+    - -I
+    - "C:/Users/aUreLi0/Desktop/Paradigmas Turismo/paradigmas_turismo/cpp/include"
+    - -isystem
+    - "C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.51.36231/include"
+    - -isystem
+    - "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt"
+    - -isystem
+    - "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared"
+    - -isystem
+    - "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um"
+    - -isystem
+    - "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/winrt"
+    - -std=c++17
+    - -fms-compatibility
+    - -fms-extensions

@@ -13,6 +13,7 @@ add_library(turismo_lib
     src/Unidad.cpp
     src/Solicitud.cpp
     src/Visitante.cpp
+    src/FA01.cpp
     src/FA02.cpp
 )
 
