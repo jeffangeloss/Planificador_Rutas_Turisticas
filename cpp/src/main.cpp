@@ -2,6 +2,8 @@
 #include "ConsultasBasicas.h"
 #include "FA01.h"
 #include "FA02.h"
+#include "GestionEstados.h"
+#include "RegistroInformacion.h"
 #include "ReporteGeneral.h"
 
 #include <cstdlib>
@@ -34,9 +36,9 @@ public:
       getline(cin, opcion);
 
       if (opcion == "1") {
-        cout << "La gestion de informacion base corresponde a su modulo.\n";
+        ejecutarRegistroInformacion(archivosCSV);
       } else if (opcion == "2") {
-        cout << "La gestion de estados corresponde a su modulo.\n";
+        ejecutarGestionEstados(archivosCSV);
       } else if (opcion == "3") {
         ejecutarConsultasBasicas(archivosCSV);
       } else if (opcion == "4") {

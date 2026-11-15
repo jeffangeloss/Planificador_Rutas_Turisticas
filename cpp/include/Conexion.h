@@ -25,6 +25,8 @@ public:
   int getTiempo() const;
   EstadoConexion getEstado() const;
   bool estaHabilitada() const;
+  void habilitar();
+  void cerrar();
 };
 
 #endif
