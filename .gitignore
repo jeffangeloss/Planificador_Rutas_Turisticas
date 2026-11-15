@@ -1,5 +1,6 @@
-# C++ / CMake
-cpp/build/
+# C++ / CMake (carpetas de compilación en cualquier nivel)
+build/
+build-*/
 cpp/cmake-build-*/
 *.o
 *.obj

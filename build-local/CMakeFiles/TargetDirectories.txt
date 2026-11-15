@@ -1,4 +1,0 @@
-C:/Users/melis/Documents/PROYECTOS_PROGRAMACION_2026/PARADIGMAS/paradigmas_turismo/build-local/CMakeFiles/turismo_lib.dir
-C:/Users/melis/Documents/PROYECTOS_PROGRAMACION_2026/PARADIGMAS/paradigmas_turismo/build-local/CMakeFiles/turismo_cpp.dir
-C:/Users/melis/Documents/PROYECTOS_PROGRAMACION_2026/PARADIGMAS/paradigmas_turismo/build-local/CMakeFiles/edit_cache.dir
-C:/Users/melis/Documents/PROYECTOS_PROGRAMACION_2026/PARADIGMAS/paradigmas_turismo/build-local/CMakeFiles/rebuild_cache.dir
