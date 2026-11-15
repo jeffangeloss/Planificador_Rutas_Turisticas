@@ -329,6 +329,125 @@ bool ArchivosCSV::archivoExiste(const string &nombre) const {
   return static_cast<bool>(archivo);
 }
 
+bool ArchivosCSV::existePunto(const string &codigo) const {
+  for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
+    if (puntos[i].getCodigo() == codigo) return true;
+  }
+  return false;
+}
+
+bool ArchivosCSV::existeConexion(const string &codigo) const {
+  for (int i = 0; i < static_cast<int>(conexiones.size()); ++i) {
+    if (conexiones[i].getCodigo() == codigo) return true;
+  }
+  return false;
+}
+
+bool ArchivosCSV::existeUnidad(const string &codigo) const {
+  for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
+    if (unidades[i].getCodigo() == codigo) return true;
+  }
+  return false;
+}
+
+bool ArchivosCSV::existeSolicitud(const string &codigo) const {
+  for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
+    if (solicitudes[i].getCodigo() == codigo) return true;
+  }
+  return false;
+}
+
+bool ArchivosCSV::agregarPunto(const Punto &punto) const {
+  ofstream archivo(rutaArchivo("puntos.csv").c_str(), ios::app);
+  if (!archivo) return false;
+  archivo << punto.getCodigo() << "," << punto.getNombre() << ","
+          << textoTipoPunto(punto.getTipo()) << "," << punto.getZona() << "\n";
+  return archivo.good();
+}
+
+bool ArchivosCSV::agregarConexion(const Conexion &conexion) const {
+  ofstream archivo(rutaArchivo("conexiones.csv").c_str(), ios::app);
+  if (!archivo) return false;
+  archivo << fixed << setprecision(2) << conexion.getCodigo() << ","
+          << conexion.getOrigen() << "," << conexion.getDestino() << ","
+          << conexion.getDistancia() << "," << conexion.getTiempo() << ","
+          << textoEstadoConexion(conexion.getEstado()) << "\n";
+  return archivo.good();
+}
+
+bool ArchivosCSV::agregarUnidad(const Unidad &unidad) const {
+  ofstream archivo(rutaArchivo("unidades.csv").c_str(), ios::app);
+  if (!archivo) return false;
+  archivo << fixed << setprecision(2) << unidad.getCodigo() << ","
+          << textoTipoUnidad(unidad.getTipo()) << "," << unidad.getCapacidad()
+          << "," << unidad.getCostoKm() << ","
+          << textoEstadoUnidad(unidad.getEstado()) << "\n";
+  return archivo.good();
+}
+
+bool ArchivosCSV::agregarSolicitud(const Solicitud &solicitud) const {
+  ofstream archivo(rutaArchivo("solicitudes.csv").c_str(), ios::app);
+  if (!archivo) return false;
+  archivo << solicitud.getCodigo() << "," << solicitud.getOrigen() << ","
+          << solicitud.getDestino() << "," << solicitud.getCantidadTuristas()
+          << "," << textoPrioridad(solicitud.getPrioridad()) << ","
+          << textoEstadoSolicitud(solicitud.getEstado()) << ","
+          << solicitud.getUnidadAsignada() << "\n";
+  return archivo.good();
+}
+
+bool ArchivosCSV::guardarConexiones(
+    const vector<Conexion> &nuevasConexiones) const {
+  ofstream archivo(rutaArchivo("conexiones.csv").c_str());
+  if (!archivo) return false;
+
+  archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
+  archivo << fixed << setprecision(2);
+  for (int i = 0; i < static_cast<int>(nuevasConexiones.size()); ++i) {
+    archivo << nuevasConexiones[i].getCodigo() << ","
+            << nuevasConexiones[i].getOrigen() << ","
+            << nuevasConexiones[i].getDestino() << ","
+            << nuevasConexiones[i].getDistancia() << ","
+            << nuevasConexiones[i].getTiempo() << ","
+            << textoEstadoConexion(nuevasConexiones[i].getEstado()) << "\n";
+  }
+  return archivo.good();
+}
+
+bool ArchivosCSV::guardarUnidadesYSolicitudes(
+    const vector<Unidad> &nuevasUnidades,
+    const vector<Solicitud> &nuevasSolicitudes) const {
+  ofstream archivoUnidades(rutaArchivo("unidades.csv").c_str());
+  ofstream archivoSolicitudes(rutaArchivo("solicitudes.csv").c_str());
+  if (!archivoUnidades || !archivoSolicitudes) return false;
+
+  archivoUnidades << "codigo,tipo,capacidad,costo_km,estado\n";
+  archivoUnidades << fixed << setprecision(2);
+  for (int i = 0; i < static_cast<int>(nuevasUnidades.size()); ++i) {
+    archivoUnidades << nuevasUnidades[i].getCodigo() << ","
+                    << textoTipoUnidad(nuevasUnidades[i].getTipo()) << ","
+                    << nuevasUnidades[i].getCapacidad() << ","
+                    << nuevasUnidades[i].getCostoKm() << ","
+                    << textoEstadoUnidad(nuevasUnidades[i].getEstado()) << "\n";
+  }
+
+  archivoSolicitudes
+      << "codigo,origen,destino,cantidad_turistas,prioridad,estado,unidad_asignada\n";
+  for (int i = 0; i < static_cast<int>(nuevasSolicitudes.size()); ++i) {
+    archivoSolicitudes << nuevasSolicitudes[i].getCodigo() << ","
+                       << nuevasSolicitudes[i].getOrigen() << ","
+                       << nuevasSolicitudes[i].getDestino() << ","
+                       << nuevasSolicitudes[i].getCantidadTuristas() << ","
+                       << textoPrioridad(nuevasSolicitudes[i].getPrioridad())
+                       << ","
+                       << textoEstadoSolicitud(nuevasSolicitudes[i].getEstado())
+                       << "," << nuevasSolicitudes[i].getUnidadAsignada()
+                       << "\n";
+  }
+
+  return archivoUnidades.good() && archivoSolicitudes.good();
+}
+
 bool ArchivosCSV::guardarPlanFA02(
     const vector<Unidad> &nuevasUnidades,
     const vector<Solicitud> &nuevasSolicitudes,

@@ -65,6 +65,20 @@ public:
   std::string textoEstadoSolicitud(EstadoSolicitud estado) const;
 
   bool archivoExiste(const std::string &nombre) const;
+  bool existePunto(const std::string &codigo) const;
+  bool existeConexion(const std::string &codigo) const;
+  bool existeUnidad(const std::string &codigo) const;
+  bool existeSolicitud(const std::string &codigo) const;
+
+  bool agregarPunto(const Punto &punto) const;
+  bool agregarConexion(const Conexion &conexion) const;
+  bool agregarUnidad(const Unidad &unidad) const;
+  bool agregarSolicitud(const Solicitud &solicitud) const;
+  bool guardarConexiones(const std::vector<Conexion> &nuevasConexiones) const;
+  bool guardarUnidadesYSolicitudes(
+      const std::vector<Unidad> &nuevasUnidades,
+      const std::vector<Solicitud> &nuevasSolicitudes) const;
+
   bool guardarPlanFA02(const std::vector<Unidad> &nuevasUnidades,
                        const std::vector<Solicitud> &nuevasSolicitudes,
                        const std::vector<Visitante> &visitantes) const;

@@ -25,3 +25,7 @@ EstadoConexion Conexion::getEstado() const { return estado; }
 bool Conexion::estaHabilitada() const {
   return estado == EstadoConexion::Habilitada;
 }
+
+void Conexion::habilitar() { estado = EstadoConexion::Habilitada; }
+
+void Conexion::cerrar() { estado = EstadoConexion::Cerrada; }

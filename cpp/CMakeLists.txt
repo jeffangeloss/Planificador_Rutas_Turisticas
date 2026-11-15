@@ -13,6 +13,8 @@ add_library(turismo_lib
     src/Unidad.cpp
     src/Solicitud.cpp
     src/Visitante.cpp
+    src/RegistroInformacion.cpp
+    src/GestionEstados.cpp
     src/ConsultasBasicas.cpp
     src/ReporteGeneral.cpp
     src/FA01.cpp
