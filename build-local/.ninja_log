@@ -1,0 +1,16 @@
+# ninja log v7
+49	484	8164700690488064	CMakeFiles/turismo_lib.dir/src/Conexion.cpp.obj	5fe584b2c12dc50f
+35	490	8164700690342474	CMakeFiles/turismo_lib.dir/src/Punto.cpp.obj	10ebad993184ec33
+73	505	8164700690741559	CMakeFiles/turismo_lib.dir/src/Visitante.cpp.obj	861098a3e7b428c2
+65	535	8164700690661030	CMakeFiles/turismo_lib.dir/src/Solicitud.cpp.obj	ee2a06407bed9f3
+56	537	8164700690580444	CMakeFiles/turismo_lib.dir/src/Unidad.cpp.obj	56442606e62046eb
+119	777	8164700691195240	CMakeFiles/turismo_lib.dir/src/ReporteGeneral.cpp.obj	6c38c9e65ec838a2
+15	502	8164706188261504	CMakeFiles/turismo_lib.dir/src/RegistroInformacion.cpp.obj	57fc1ce584679e1a
+102	823	8164700691094629	CMakeFiles/turismo_lib.dir/src/ConsultasBasicas.cpp.obj	b2587da5e5fefb4e
+145	868	8164700691453376	CMakeFiles/turismo_cpp.dir/src/main.cpp.obj	ca8bd7460e9307cf
+94	887	8164700690933834	CMakeFiles/turismo_lib.dir/src/GestionEstados.cpp.obj	ee78e469000b04b8
+128	914	8164700691281013	CMakeFiles/turismo_lib.dir/src/FA01.cpp.obj	12da3e2d25d908af
+137	1063	8164700691367202	CMakeFiles/turismo_lib.dir/src/FA02.cpp.obj	8777cddb5e8f2af
+26	1155	8164700690267184	CMakeFiles/turismo_lib.dir/src/ArchivosCSV.cpp.obj	479aae03528f8ef9
+503	634	8164706193139057	libturismo_lib.a	bdf16ef727f92e27
+634	790	8164706194442274	turismo_cpp.exe	5808f6aec5f7d93f
