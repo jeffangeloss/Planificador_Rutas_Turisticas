@@ -23,9 +23,20 @@ solicitudes_inaccesibles(Solicitudes) :-
 
 ejecutar_solicitudes_inaccesibles :-
     solicitudes_inaccesibles(Solicitudes),
-    (   Solicitudes = []
+    findall(Codigo, solicitud(Codigo, _, _, _, _, _, _), TodasSolicitudes),
+    length(TodasSolicitudes, Total),
+    length(Solicitudes, SinRuta),
+    ConRuta is Total - SinRuta,
+    nl,
+    writeln('=== Diagnostico de rutas de solicitudes ==='),
+    format('Solicitudes revisadas (todos los estados): ~d~n', [Total]),
+    format('Con ruta habilitada: ~d~n', [ConRuta]),
+    format('Sin ruta habilitada: ~d~n', [SinRuta]),
+    (   Total =:= 0
+    ->  writeln('[INFO] No hay solicitudes para revisar.')
+    ;   Solicitudes = []
     ->  writeln('[OK] Todas las solicitudes tienen una ruta habilitada.')
-    ;   writeln('Solicitudes sin ruta habilitada:'),
+    ;   writeln('[AVISO] Revisar estas solicitudes:'),
         forall(
             member(solicitud(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, Unidad), Solicitudes),
             format(' - ~w: ~w -> ~w; ~d turistas; prioridad ~w; estado ~w; unidad ~w~n',

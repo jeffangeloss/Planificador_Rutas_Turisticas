@@ -173,17 +173,75 @@ hora_en_rango(Hora, Inicio, Fin) :- Hora @>= Inicio, Hora @=< Fin.
 hora_del_dia(Hora, dia) :- Hora @>= '06:00', Hora @< '18:00'.
 hora_del_dia(Hora, noche) :- Hora @< '06:00' ; Hora @>= '18:00'.
 
-ejecutar_recomendador :-
-    leer_codigo('Codigo del perfil turistico: ', CodigoPerfil),
-    (   recomendar(CodigoPerfil, Resultados)
-    ->  mostrar_resultados(Resultados)
-    ;   format('[ERROR] No se encontro el perfil ~w.~n', [CodigoPerfil])
+mostrar_perfiles_disponibles :-
+    writeln('Perfiles registrados (codigo | movilidad | ninos | hora | intereses):'),
+    (   perfil_turista(_, _, _, _)
+    ->  forall(
+            perfil_turista(Codigo, Movilidad, Ninos, Hora),
+            ( findall(Interes, interes_perfil(Codigo, Interes), Intereses),
+              format(' - ~w | movilidad: ~w | viaja con ninos: ~w | hora: ~w | intereses: ~w~n',
+                  [Codigo, Movilidad, Ninos, Hora, Intereses])
+            )
+        )
+    ;   writeln('   No hay perfiles registrados.')
     ).
 
-mostrar_resultados([]) :-
-    writeln('[INFO] No hay puntos turisticos para evaluar.').
-mostrar_resultados(Resultados) :-
+leer_codigo_perfil(Codigo) :-
+    (   perfil_turista(Ejemplo, _, _, _)
+    ->  format(atom(Prompt), 'Codigo de perfil (ejemplo: ~w): ', [Ejemplo])
+    ;   Prompt = 'Codigo de perfil (revisa la lista): '
+    ),
+    leer_codigo(Prompt, Codigo).
+
+ejecutar_recomendador :-
+    nl,
+    writeln('=== Recomendador de atractivos FA01 ==='),
+    mostrar_perfiles_disponibles,
+    (   perfil_turista(_, _, _, _)
+    ->  leer_codigo_perfil(CodigoPerfil),
+        (   recomendar(CodigoPerfil, Resultados)
+        ->  mostrar_resultados(CodigoPerfil, Resultados)
+        ;   format('[ERROR] No se encontro el perfil ~w.~n', [CodigoPerfil])
+        )
+    ;   writeln('[INFO] Registra un perfil desde el menu FA01 de C++.')
+    ).
+
+mostrar_resultados(CodigoPerfil, Resultados) :-
+    findall(
+        recomendacion(Codigo, Nombre, Puntaje, Motivos),
+        member(recomendacion(Codigo, Nombre, Puntaje, Motivos), Resultados),
+        Recomendaciones
+    ),
+    findall(
+        descarte(Codigo, Nombre, Razones),
+        member(descarte(Codigo, Nombre, Razones), Resultados),
+        Descartes
+    ),
+    length(Recomendaciones, CantidadRecomendados),
+    length(Descartes, CantidadDescartados),
+    nl,
+    format('=== Resultados para el perfil ~w ===~n', [CodigoPerfil]),
+    format('Lugares recomendados: ~d~n', [CantidadRecomendados]),
+    format('Lugares que no cumplen el perfil: ~d~n', [CantidadDescartados]),
+    mostrar_seccion_recomendaciones(Recomendaciones),
+    mostrar_seccion_descartes(Descartes).
+
+mostrar_seccion_recomendaciones([]) :-
+    nl,
+    writeln('No hay lugares que cumplan el perfil.').
+mostrar_seccion_recomendaciones(Resultados) :-
     Resultados \= [],
+    nl,
+    writeln('--- Lugares recomendados ---'),
+    forall(member(Resultado, Resultados), mostrar_resultado(Resultado)).
+
+mostrar_seccion_descartes([]) :-
+    nl,
+    writeln('No se descartaron atractivos.').
+mostrar_seccion_descartes(Resultados) :-
+    Resultados \= [],
+    nl,
+    writeln('--- Lugares descartados y motivos ---'),
     forall(member(Resultado, Resultados), mostrar_resultado(Resultado)).
 
 mostrar_resultado(recomendacion(Codigo, Nombre, Puntaje, Motivos)) :-

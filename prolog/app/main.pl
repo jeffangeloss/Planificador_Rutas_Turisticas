@@ -66,8 +66,8 @@ mostrar_menu :-
     writeln('2. [4.3.3] Regla de alcanzabilidad'),
     writeln('3. [4.3.4] Regla de ruta evitando un punto'),
     writeln('4. [4.3.5] Regla de atencion de solicitudes'),
-    writeln('5. [4.3.6] Regla de solicitudes inaccesibles'),
-    writeln('6. [FA01] Recomendador explicable de atractivos'),
+    writeln('5. [4.3.6] Diagnosticar solicitudes sin ruta'),
+    writeln('6. [FA01] Obtener recomendaciones segun perfil'),
     writeln('0. Volver al menu de C++').
 
 ejecutar_opcion("1") :-
