@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <sstream>
 #include <system_error>
 
@@ -383,8 +382,7 @@ bool ArchivosCSV::guardarConexiones(
     const vector<Conexion> &conexionesActualizadas) const {
   return guardarCSV(rutaArchivo("conexiones.csv"),
                    [this, &conexionesActualizadas](ostream &archivo) {
-    archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n"
-            << setprecision(numeric_limits<double>::max_digits10);
+    archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
     for (const Conexion &conexion : conexionesActualizadas) {
       archivo << conexion.getCodigo() << ',' << conexion.getOrigen() << ','
               << conexion.getDestino() << ',' << conexion.getDistancia() << ','
