@@ -127,7 +127,11 @@ private:
                            vector<AlternativaFA02> &alternativas) const {
     string comando = comandoHaskell(generales, estudiantes, ninos, presupuesto,
                                     tiempoMaximo);
+#ifdef _WIN32
     FILE *proceso = _popen(comando.c_str(), "r");
+#else
+    FILE *proceso = popen(comando.c_str(), "r");
+#endif
     if (proceso == NULL) {
       cout << "[ERROR] No se pudo iniciar Haskell.\n";
       return false;
@@ -157,7 +161,11 @@ private:
       }
     }
 
+#ifdef _WIN32
     int resultado = _pclose(proceso);
+#else
+    int resultado = pclose(proceso);
+#endif
     if (resultado != 0) {
       cout << "[ERROR] Haskell no pudo completar FA02.\n";
       return false;

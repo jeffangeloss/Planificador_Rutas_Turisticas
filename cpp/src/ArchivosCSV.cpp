@@ -1,9 +1,12 @@
 #include "ArchivosCSV.h"
 
+#include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <system_error>
 
 using namespace std;
 
@@ -329,6 +332,66 @@ bool ArchivosCSV::archivoExiste(const string &nombre) const {
   return static_cast<bool>(archivo);
 }
 
+namespace {
+
+template <typename EscribirFilas>
+bool guardarCSV(const filesystem::path &destino, EscribirFilas escribirFilas) {
+  const auto marca = chrono::steady_clock::now().time_since_epoch().count();
+  const filesystem::path carpetaTemporal = destino.parent_path() /
+      (destino.stem().string() + ".tmp." + to_string(marca));
+  error_code error;
+  if (!filesystem::create_directory(carpetaTemporal, error)) return false;
+
+  const auto temporal = carpetaTemporal / destino.filename();
+  ofstream archivo(temporal, ios::binary);
+  if (!archivo) {
+    filesystem::remove(carpetaTemporal, error);
+    return false;
+  }
+
+  escribirFilas(archivo);
+  archivo.close();
+
+  if (archivo) {
+    filesystem::rename(temporal, destino, error);
+  }
+  const bool guardado = archivo && !error;
+  filesystem::remove(temporal, error);
+  filesystem::remove(carpetaTemporal, error);
+  return guardado;
+}
+
+} // namespace
+
+// 4.1.5 Generacion de archivos CSV. Responsable: Jefferson Sanchez.
+bool ArchivosCSV::guardarPuntos(
+    const vector<Punto> &puntosActualizados) const {
+  return guardarCSV(rutaArchivo("puntos.csv"),
+                   [this, &puntosActualizados](ostream &archivo) {
+    archivo << "codigo,nombre,tipo,zona\n";
+    for (const Punto &punto : puntosActualizados) {
+      archivo << punto.getCodigo() << ',' << punto.getNombre() << ','
+              << textoTipoPunto(punto.getTipo()) << ',' << punto.getZona()
+              << '\n';
+    }
+  });
+}
+
+// 4.1.5 Guardado de conexiones. Responsable: Jefferson Sanchez.
+bool ArchivosCSV::guardarConexiones(
+    const vector<Conexion> &conexionesActualizadas) const {
+  return guardarCSV(rutaArchivo("conexiones.csv"),
+                   [this, &conexionesActualizadas](ostream &archivo) {
+    archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
+    for (const Conexion &conexion : conexionesActualizadas) {
+      archivo << conexion.getCodigo() << ',' << conexion.getOrigen() << ','
+              << conexion.getDestino() << ',' << conexion.getDistancia() << ','
+              << conexion.getTiempo() << ','
+              << textoEstadoConexion(conexion.getEstado()) << '\n';
+    }
+  });
+}
+
 bool ArchivosCSV::existePunto(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
     if (puntos[i].getCodigo() == codigo) return true;
@@ -393,24 +456,6 @@ bool ArchivosCSV::agregarSolicitud(const Solicitud &solicitud) const {
           << "," << textoPrioridad(solicitud.getPrioridad()) << ","
           << textoEstadoSolicitud(solicitud.getEstado()) << ","
           << solicitud.getUnidadAsignada() << "\n";
-  return archivo.good();
-}
-
-bool ArchivosCSV::guardarConexiones(
-    const vector<Conexion> &nuevasConexiones) const {
-  ofstream archivo(rutaArchivo("conexiones.csv").c_str());
-  if (!archivo) return false;
-
-  archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
-  archivo << fixed << setprecision(2);
-  for (int i = 0; i < static_cast<int>(nuevasConexiones.size()); ++i) {
-    archivo << nuevasConexiones[i].getCodigo() << ","
-            << nuevasConexiones[i].getOrigen() << ","
-            << nuevasConexiones[i].getDestino() << ","
-            << nuevasConexiones[i].getDistancia() << ","
-            << nuevasConexiones[i].getTiempo() << ","
-            << textoEstadoConexion(nuevasConexiones[i].getEstado()) << "\n";
-  }
   return archivo.good();
 }
 
