@@ -1,5 +1,6 @@
 #include "ArchivosCSV.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -67,6 +68,7 @@ bool ArchivosCSV::leerFilas(const string &nombre, vector<string> &filas) const {
   string linea;
   getline(archivo, linea); // Saltar encabezado
   while (getline(archivo, linea)) {
+    if (!linea.empty() && linea.back() == '\r') linea.pop_back();
     if (linea != "") filas.push_back(linea);
   }
   return true;
@@ -535,4 +537,106 @@ bool ArchivosCSV::guardarPlanFA02(
 
   return archivoUnidades.good() && archivoSolicitudes.good()
          && archivoVisitantes.good();
+}
+
+// FA03 - Autor: Jefferson Sanchez.
+// Cupos por turno y reservas con lista de espera. Las escrituras usan
+// guardarCSV, asi que una falla no deja el archivo a medio escribir.
+
+bool ArchivosCSV::convertirEstadoReserva(const string &texto,
+                                         EstadoReserva &estado) const {
+  if (texto == "confirmada") estado = EstadoReserva::Confirmada;
+  else if (texto == "en_espera") estado = EstadoReserva::EnEspera;
+  else if (texto == "cancelada") estado = EstadoReserva::Cancelada;
+  else return false;
+  return true;
+}
+
+string ArchivosCSV::textoEstadoReserva(EstadoReserva estado) const {
+  if (estado == EstadoReserva::Confirmada) return "confirmada";
+  if (estado == EstadoReserva::EnEspera) return "en_espera";
+  return "cancelada";
+}
+
+vector<Cupo> ArchivosCSV::cargarCupos() const {
+  vector<Cupo> cupos;
+  vector<string> filas;
+  if (!leerFilas("cupos.csv", filas)) return cupos;
+
+  vector<string> claves;
+  for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+    vector<string> campos = separarCampos(filas[i]);
+    int capacidad = 0;
+    string clave = campos.size() == 3 ? campos[0] + " " + campos[1] : "";
+    bool valida = campos.size() == 3 && campos[0] != "" && turnoValido(campos[1])
+                  && leerEntero(campos[2], capacidad) && capacidad > 0
+                  && find(claves.begin(), claves.end(), clave) == claves.end();
+    if (valida) {
+      claves.push_back(clave);
+      cupos.push_back(Cupo(campos[0], campos[1], capacidad));
+    } else {
+      mostrarFilaInvalida("cupos.csv", i + 2);
+    }
+  }
+  return cupos;
+}
+
+vector<Reserva> ArchivosCSV::cargarReservas() const {
+  vector<Reserva> reservas;
+  vector<string> filas;
+  if (!leerFilas("reservas.csv", filas)) return reservas;
+
+  vector<string> codigos;
+  for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+    vector<string> campos = separarCampos(filas[i]);
+    int personas = 0;
+    int orden = 0;
+    EstadoReserva estado = EstadoReserva::Cancelada;
+    bool valida = campos.size() == 8 && campos[0] != "" && campos[1] != ""
+                  && campos[2] != "" && fechaValida(campos[3])
+                  && turnoValido(campos[4]) && leerEntero(campos[5], personas)
+                  && personas > 0 && convertirEstadoReserva(campos[6], estado)
+                  && leerEntero(campos[7], orden)
+                  && (estado == EstadoReserva::EnEspera ? orden > 0 : orden == 0)
+                  && find(codigos.begin(), codigos.end(), campos[0]) == codigos.end();
+    if (valida) {
+      codigos.push_back(campos[0]);
+      reservas.push_back(Reserva(campos[0], campos[1], campos[2], campos[3],
+                                 campos[4], personas, estado, orden));
+    } else {
+      mostrarFilaInvalida("reservas.csv", i + 2);
+    }
+  }
+  return reservas;
+}
+
+bool ArchivosCSV::guardarCupos(const vector<Cupo> &cupos) const {
+  return guardarCSV(rutaArchivo("cupos.csv"), [&cupos](ostream &archivo) {
+    archivo << "punto,turno,capacidad_maxima\n";
+    for (const Cupo &cupo : cupos) {
+      archivo << cupo.getPunto() << ',' << cupo.getTurno() << ','
+              << cupo.getCapacidadMaxima() << '\n';
+    }
+  });
+}
+
+bool ArchivosCSV::guardarReservas(const vector<Reserva> &reservas) const {
+  return guardarCSV(rutaArchivo("reservas.csv"),
+                    [this, &reservas](ostream &archivo) {
+    archivo << "codigo,solicitud,punto,fecha,turno,personas,estado,"
+               "orden_espera\n";
+    for (const Reserva &reserva : reservas) {
+      archivo << reserva.getCodigo() << ',' << reserva.getSolicitud() << ','
+              << reserva.getPunto() << ',' << reserva.getFecha() << ','
+              << reserva.getTurno() << ',' << reserva.getPersonas() << ','
+              << textoEstadoReserva(reserva.getEstado()) << ','
+              << reserva.getOrdenEspera() << '\n';
+    }
+  });
+}
+
+int ArchivosCSV::contarFilas(const string &nombre) const {
+  vector<string> filas;
+  leerFilas(nombre, filas);
+  return static_cast<int>(filas.size());
 }

@@ -2,7 +2,9 @@
 #define ARCHIVOS_CSV_H
 
 #include "Conexion.h"
+#include "Cupo.h"
 #include "Punto.h"
+#include "Reserva.h"
 #include "Solicitud.h"
 #include "Tipos.h"
 #include "Unidad.h"
@@ -36,6 +38,8 @@ private:
                           Prioridad &prioridad) const;
   bool convertirEstadoSolicitud(const std::string &texto,
                                 EstadoSolicitud &estado) const;
+  bool convertirEstadoReserva(const std::string &texto,
+                              EstadoReserva &estado) const;
 
   std::vector<Punto> cargarPuntos() const;
   std::vector<Conexion> cargarConexiones() const;
@@ -84,6 +88,16 @@ public:
   bool guardarPuntos(const std::vector<Punto> &puntosActualizados) const;
   bool guardarConexiones(
       const std::vector<Conexion> &conexionesActualizadas) const;
+
+  // FA03 - Autor: Jefferson Sanchez. Cupos por turno y reservas con lista de
+  // espera; solo C++ lee y escribe estos dos archivos.
+  std::vector<Cupo> cargarCupos() const;
+  std::vector<Reserva> cargarReservas() const;
+  bool guardarCupos(const std::vector<Cupo> &cupos) const;
+  bool guardarReservas(const std::vector<Reserva> &reservas) const;
+  std::string textoEstadoReserva(EstadoReserva estado) const;
+  // Filas de datos no vacias de un CSV, para saber si la carga descarto alguna.
+  int contarFilas(const std::string &nombre) const;
 };
 
 #endif

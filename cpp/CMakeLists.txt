@@ -19,6 +19,10 @@ add_library(turismo_lib
     src/ReporteGeneral.cpp
     src/FA01.cpp
     src/FA02.cpp
+    src/Cupo.cpp
+    src/Reserva.cpp
+    src/AgendaCupos.cpp
+    src/FA03.cpp
 )
 
 target_include_directories(turismo_lib PUBLIC include)
@@ -26,4 +30,8 @@ target_include_directories(turismo_lib PUBLIC include)
 add_executable(turismo_cpp src/main.cpp)
 target_link_libraries(turismo_cpp PRIVATE turismo_lib)
 
-
+# FA03 - Autor: Jefferson Sanchez. Pruebas de la agenda de cupos y la lista de espera.
+enable_testing()
+add_executable(prueba_fa03 tests/prueba_fa03.cpp)
+target_link_libraries(prueba_fa03 PRIVATE turismo_lib)
+add_test(NAME prueba_fa03 COMMAND prueba_fa03)

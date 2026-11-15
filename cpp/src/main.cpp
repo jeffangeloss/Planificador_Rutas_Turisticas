@@ -7,6 +7,7 @@
 #include "ConsultasBasicas.h"
 #include "FA01.h"
 #include "FA02.h"
+#include "FA03.h"
 #include "GestionEstados.h"
 #include "RegistroInformacion.h"
 #include "ReporteGeneral.h"
@@ -36,10 +37,13 @@ public:
            << "6. Abrir modulo Prolog\n"
            << "7. Registrar datos para FA01\n"
            << "8. Cotizar plan turistico FA02\n"
-           << "9. Reservas de cupo por lista de espera FA03\n"
+           << "9. Reservas de cupos por turno FA03\n"
            << "0. Salir\n"
            << "Opcion: ";
-      getline(cin, opcion);
+      if (!getline(cin, opcion)) {
+        cout << "\nPrograma finalizado.\n";
+        break;
+      }
 
       if (opcion == "1") {
         ejecutarRegistroInformacion(archivosCSV);
@@ -61,8 +65,8 @@ public:
         ejecutarFA02(carpetaDatos);
         archivosCSV.actualizarDatos();
       } else if (opcion == "9") {
-        cout << "El modulo de reservas de cupo por lista de espera corresponde "
-                "a su modulo.\n";
+        // FA03 - Autor: Jefferson Sanchez.
+        ejecutarFA03(archivosCSV);
       } else if (opcion == "0") {
         cout << "Programa finalizado.\n";
       } else {
