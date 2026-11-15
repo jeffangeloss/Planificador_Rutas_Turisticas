@@ -5,8 +5,8 @@ import LecturaCSV (leerConexiones, leerSolicitudes)
 import Rutas (ejecutarRutas)
 import Tipos (Conexion)
 import Tipos (Solicitud)
-import Vecinos (ejecutarVecinos, vecinos)
-import ReporteSolicitudes (ejecutarReporteSolicitudes, reporteSolicitudes)
+import Vecinos (ejecutarVecinos)
+import ReporteSolicitudes (ejecutarReporteSolicitudes)
 import SeleccionAtractivos (ejecutarSeleccionAtractivos)
 import System.Environment (getArgs)
 
@@ -18,7 +18,6 @@ mostrarMenu = do
   putStrLn "2. [4.2.4] Rutas posibles"
   putStrLn "3. [4.2.5] Costo de una ruta"
   putStrLn "4. [4.2.6] Reporte de solicitudes"
-  putStrLn "5. [4.2.7] Mostrar resultado esperado"
   putStrLn "0. Volver al menu de C++"
   putStrLn "Opcion:"
 
@@ -28,11 +27,6 @@ ejecutarOpcion "2" conexiones _ = ejecutarRutas conexiones
 ejecutarOpcion "3" conexiones _ = ejecutarCostoRuta conexiones
 -- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
 ejecutarOpcion "4" _ solicitudes = ejecutarReporteSolicitudes solicitudes
--- 4.2.7 Resultado esperado. Responsable: Samantha Rodriguez.
-ejecutarOpcion "5" conexiones solicitudes = do
-  putStrLn "=== Resultado esperado ==="
-  putStrLn ("Vecinos habilitados de P002: " ++ show (vecinos "P002" conexiones))
-  putStrLn (reporteSolicitudes solicitudes)
 ejecutarOpcion "0" _ _ = putStrLn "Regresando al menu de C++..."
 ejecutarOpcion _ _ _ = putStrLn "[ERROR] Opcion no valida."
 
@@ -60,6 +54,7 @@ iniciarMenu carpetaDatos = do
   resultadoSolicitudes <- leerSolicitudes (carpetaDatos ++ "/solicitudes.csv")
   iniciarPrograma resultadoConexiones resultadoSolicitudes
 
+-- 4.2.7 Resultado esperado: integración del programa. Responsable: Samantha Rodriguez.
 main :: IO ()
 main = do
   argumentos <- getArgs
