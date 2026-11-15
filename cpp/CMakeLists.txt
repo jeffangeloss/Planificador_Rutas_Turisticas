@@ -13,6 +13,8 @@ add_library(turismo_lib
     src/Unidad.cpp
     src/Solicitud.cpp
     src/Visitante.cpp
+    src/ConsultasBasicas.cpp
+    src/ReporteGeneral.cpp
     src/FA01.cpp
     src/FA02.cpp
 )
@@ -21,4 +23,5 @@ target_include_directories(turismo_lib PUBLIC include)
 
 add_executable(turismo_cpp src/main.cpp)
 target_link_libraries(turismo_cpp PRIVATE turismo_lib)
+
 
