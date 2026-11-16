@@ -76,6 +76,10 @@ codigo,tipo,capacidad,costo_km,estado
 - `costo_km`: costo por kilómetro; debe ser mayor que cero.
 - `estado`: `disponible` u `ocupada`.
 
+En los datos de prueba, cada unidad ocupada atiende una sola solicitud asignada,
+y quedan disponibles una guía peatonal (`U001`), un bus turístico (`U003`) y dos
+taxis turísticos (`U006` y `U009`).
+
 ## `solicitudes.csv`
 
 Registra las solicitudes de recorrido. Sus códigos deben comenzar con `S`, por ejemplo `S001`.
@@ -90,6 +94,11 @@ codigo,origen,destino,cantidad_turistas,prioridad,estado,unidad_asignada
 - `prioridad`: `alta`, `media` o `baja`.
 - `estado`: `pendiente`, `asignada` o `entregada`.
 - `unidad_asignada`: código de la unidad que atiende o atendió la solicitud.
+
+Los datos de prueba incluyen solicitudes pendientes de las tres prioridades, que
+son `S001` (alta), `S007` y `S011` (media) y `S004` (baja). El destino de `S011`,
+el Puente de los Suspiros (`P013`), solo se alcanza por la conexión cerrada
+`C022`, así que esta solicitud no tiene ruta habilitada desde su origen.
 
 ## Datos adicionales de FA02
 
