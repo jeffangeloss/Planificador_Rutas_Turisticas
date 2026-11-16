@@ -157,9 +157,9 @@ usa conexiones habilitadas en ambos sentidos, sin repetir puntos. Si el punto
 evitado coincide con el origen o el destino, o no existe una ruta alternativa,
 informa que no hay solución.
 
-La opción 4.3.6 lista las solicitudes para las que el destino no es alcanzable
-desde el origen. Considera todos los estados para que también sirva como
-revisión de consistencia de los registros históricos.
+La opción 4.3.6 lista solo los pedidos pendientes cuyo destino no es
+alcanzable desde el origen. El predicado pedidos_inaccesibles/1 devuelve
+esa lista; las solicitudes asignadas y entregadas quedan fuera.
 
 ## Recomendador FA01
 

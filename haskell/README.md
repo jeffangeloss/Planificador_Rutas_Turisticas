@@ -17,12 +17,11 @@ cabal run --project-dir=haskell turismo-haskell -- _datos
 
 Al iniciar, el menú carga `conexiones.csv`, `unidades.csv` y `solicitudes.csv`,
 informa con `[OK]` o `[ERROR]` el resultado de cada archivo y solo se abre si
-los tres se leyeron bien. La opción 4.2.6 muestra
-el total de solicitudes, su distribución por estado, la cantidad total de
-turistas y el detalle de cada solicitud. El reporte usa `filter` para contar
-estados y recursión para sumar turistas y generar las líneas. La opción 4.2.7
-imprime un ejemplo de vecinos habilitados junto con el reporte para ilustrar
-el resultado del módulo.
+los tres se leyeron bien. La opción 4.2.6 muestra los totales por estado, la cantidad de turistas,
+la carga asignada de cada unidad y los pedidos pendientes ordenados por
+prioridad (alta, media y baja). La carga suma solo solicitudes asignadas a
+esa unidad, incluidas las unidades con cero turistas. El reporte usa filter,
+foldr y concatMap. La opción 4.2.7 no forma parte del menú.
 
 ## Ejecutar pruebas
 

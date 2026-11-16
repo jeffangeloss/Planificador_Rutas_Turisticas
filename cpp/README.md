@@ -15,10 +15,12 @@ build\turismo_cpp.exe
 En Windows con un generador multiconfiguración, el ejecutable puede quedar en
 `build/Debug/turismo_cpp.exe`.
 
-Ejecuta el programa desde `cpp/` o desde la raíz del repositorio para que
-encuentre `_datos/`. El menú permite consultar registros por código, mostrar
-el reporte general, iniciar Haskell o Prolog y registrar los perfiles y
-características que utiliza FA01. SWI-Prolog y Cabal deben estar disponibles
+Ejecuta el programa desde cpp/ o desde la raíz del repositorio para que
+encuentre _datos/. En Consultas básicas, presiona Enter para listar todos los
+puntos, conexiones, solicitudes o unidades. También puedes filtrar conexiones
+por punto, solicitudes por estado y unidades con sus solicitudes asignadas.
+El reporte general muestra la unidad con más pedidos asignados y todos los
+empates. El menú también inicia Haskell o Prolog y permite registrar datos FA01. SWI-Prolog y Cabal deben estar disponibles
 en `PATH` para abrir esos módulos desde el menú.
 
 Para una recomendación FA01, registra primero el perfil y los datos de los

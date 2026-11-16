@@ -22,24 +22,24 @@ mostrarMenu = do
   putStrLn "0. Volver al menu de C++"
   putStrLn "Opcion:"
 
-ejecutarOpcion :: String -> [Conexion] -> [Solicitud] -> IO ()
-ejecutarOpcion "1" conexiones _ = ejecutarVecinos conexiones
-ejecutarOpcion "2" conexiones _ = ejecutarRutas conexiones
-ejecutarOpcion "3" conexiones _ = ejecutarCostoRuta conexiones
+ejecutarOpcion :: String -> [Conexion] -> [Unidad] -> [Solicitud] -> IO ()
+ejecutarOpcion "1" conexiones _ _ = ejecutarVecinos conexiones
+ejecutarOpcion "2" conexiones _ _ = ejecutarRutas conexiones
+ejecutarOpcion "3" conexiones _ _ = ejecutarCostoRuta conexiones
 -- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
-ejecutarOpcion "4" _ solicitudes = ejecutarReporteSolicitudes solicitudes
-ejecutarOpcion "0" _ _ = putStrLn "Regresando al menu de C++..."
-ejecutarOpcion _ _ _ = putStrLn "[ERROR] Opcion no valida."
+ejecutarOpcion "4" _ unidades solicitudes = ejecutarReporteSolicitudes unidades solicitudes
+ejecutarOpcion "0" _ _ _ = putStrLn "Regresando al menu de C++..."
+ejecutarOpcion _ _ _ _ = putStrLn "[ERROR] Opcion no valida."
 
-menuPrincipal :: [Conexion] -> [Solicitud] -> IO ()
-menuPrincipal conexiones solicitudes = do
+menuPrincipal :: [Conexion] -> [Unidad] -> [Solicitud] -> IO ()
+menuPrincipal conexiones unidades solicitudes = do
   mostrarMenu
   opcion <- getLine
-  ejecutarOpcion opcion conexiones solicitudes
+  ejecutarOpcion opcion conexiones unidades solicitudes
 
   if opcion == "0"
     then return ()
-    else menuPrincipal conexiones solicitudes
+    else menuPrincipal conexiones unidades solicitudes
 
 informarLectura :: String -> Maybe [a] -> IO ()
 informarLectura archivo Nothing = putStrLn ("[ERROR] No se pudo leer " ++ archivo ++ ".")
@@ -52,7 +52,7 @@ iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes = do
   informarLectura "unidades.csv" resultadoUnidades
   informarLectura "solicitudes.csv" resultadoSolicitudes
   case (resultadoConexiones, resultadoUnidades, resultadoSolicitudes) of
-    (Just conexiones, Just _, Just solicitudes) -> menuPrincipal conexiones solicitudes
+    (Just conexiones, Just unidades, Just solicitudes) -> menuPrincipal conexiones unidades solicitudes
     _ -> putStrLn "[ERROR] Corrige los archivos indicados y vuelve a abrir el modulo."
 
 -- 4.2.1 Lectura de conexiones.csv, unidades.csv y solicitudes.csv. Responsable: Jefferson Sanchez.

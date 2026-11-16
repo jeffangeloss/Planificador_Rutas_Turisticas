@@ -43,6 +43,14 @@ void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
     if (solicitudes[i].getEstado() == EstadoSolicitud::Entregada) entregadas++;
   }
 
+  int maximoPedidos = 0;
+  for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
+    int pedidosUnidad = 0;
+    for (int j = 0; j < static_cast<int>(solicitudes.size()); ++j)
+      if (solicitudes[j].getUnidadAsignada() == unidades[i].getCodigo())
+        pedidosUnidad++;
+    if (pedidosUnidad > maximoPedidos) maximoPedidos = pedidosUnidad;
+  }
   cout << "\n=== Reporte general ===\n"
        << "Puntos: " << puntos.size() << "\n"
        << "Conexiones: " << conexiones.size() << " (habilitadas: "
@@ -51,5 +59,23 @@ void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
        << disponibles << ", ocupadas: " << ocupadas << ")\n"
        << "Solicitudes: " << solicitudes.size() << " (pendientes: "
        << pendientes << ", asignadas: " << asignadas << ", entregadas: "
-       << entregadas << ")\n";
+       << entregadas << ")\n"
+       << "Unidad con mas pedidos: ";
+  if (maximoPedidos == 0) {
+    cout << "ninguna (0 pedidos)\n";
+  } else {
+    bool primera = true;
+    for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
+      int pedidosUnidad = 0;
+      for (int j = 0; j < static_cast<int>(solicitudes.size()); ++j)
+        if (solicitudes[j].getUnidadAsignada() == unidades[i].getCodigo())
+          pedidosUnidad++;
+      if (pedidosUnidad == maximoPedidos) {
+        if (!primera) cout << ", ";
+        cout << unidades[i].getCodigo() << " (" << pedidosUnidad << " pedidos)";
+        primera = false;
+      }
+    }
+    cout << "\n";
+  }
 }

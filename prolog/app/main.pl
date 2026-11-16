@@ -6,7 +6,7 @@
     ejecutar_ruta_evitando/0
 ]).
 :- use_module('../src/Atencion_solicitudes', [ejecutar_atencion/0]).
-:- use_module('../src/Solicitudes_inaccesibles', [ejecutar_solicitudes_inaccesibles/0]).
+:- use_module('../src/Solicitudes_inaccesibles', [ejecutar_pedidos_inaccesibles/0]).
 :- use_module('../src/Recomendador', [cargar_recomendador/1, ejecutar_recomendador/0]).
 
 main :-
@@ -66,7 +66,7 @@ mostrar_menu :-
     writeln('2. [4.3.3] Regla de alcanzabilidad'),
     writeln('3. [4.3.4] Regla de ruta evitando un punto'),
     writeln('4. [4.3.5] Regla de atencion de solicitudes'),
-    writeln('5. [4.3.6] Diagnosticar solicitudes sin ruta'),
+    writeln('5. [4.3.6] Pedidos pendientes sin ruta'),
     writeln('6. [FA01] Obtener recomendaciones segun perfil'),
     writeln('0. Volver al menu de C++').
 
@@ -83,7 +83,7 @@ ejecutar_opcion("4") :-
     ejecutar_atencion,
     menu_principal.
 ejecutar_opcion("5") :-
-    ejecutar_solicitudes_inaccesibles,
+    ejecutar_pedidos_inaccesibles,
     menu_principal.
 ejecutar_opcion("6") :-
     (   fa01_cargado

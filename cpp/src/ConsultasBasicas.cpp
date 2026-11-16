@@ -44,10 +44,19 @@ private:
     return resultado;
   }
 
-  void mostrarNoEncontrado(bool encontrado, const string &tipo,
-                           const string &codigo) const {
-    if (!encontrado)
-      cout << "No se encontro " << tipo << " " << codigo << ".\n";
+  void mostrarConexion(const Conexion &conexion) const {
+    cout << " - " << conexion.getCodigo() << " | " << conexion.getOrigen()
+         << " -> " << conexion.getDestino() << " | " << conexion.getDistancia()
+         << " km | " << conexion.getTiempo() << " min | "
+         << archivosCSV.textoEstadoConexion(conexion.getEstado()) << "\n";
+  }
+
+  void mostrarUnidad(const Unidad &unidad) const {
+    cout << " - " << unidad.getCodigo() << " | "
+         << archivosCSV.textoTipoUnidad(unidad.getTipo()) << " | "
+         << unidad.getCapacidad() << " turistas | costo/km: "
+         << unidad.getCostoKm() << " | "
+         << archivosCSV.textoEstadoUnidad(unidad.getEstado()) << "\n";
   }
 
   void mostrarSolicitud(const Solicitud &solicitud) const {
@@ -57,15 +66,35 @@ private:
          << archivosCSV.textoPrioridad(solicitud.getPrioridad()) << " | estado "
          << archivosCSV.textoEstadoSolicitud(solicitud.getEstado())
          << " | unidad "
-         << (solicitud.getUnidadAsignada() == ""
+         << (solicitud.getUnidadAsignada().empty()
                  ? "sin asignar"
                  : solicitud.getUnidadAsignada())
          << "\n";
   }
 
+  void mostrarNoEncontrado(bool encontrado, const string &tipo,
+                           const string &criterio) const {
+    if (!encontrado)
+      cout << "No se encontro " << tipo << " " << criterio << ".\n";
+  }
+
+  void mostrarListaPuntos(const vector<Punto> &puntos) const {
+    cout << "\nPuntos registrados (" << puntos.size() << "):\n";
+    for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
+      cout << " - " << puntos[i].getCodigo() << " | " << puntos[i].getNombre()
+           << " | " << archivosCSV.textoTipoPunto(puntos[i].getTipo()) << " | "
+           << puntos[i].getZona() << "\n";
+    }
+  }
+
   void consultarPunto() const {
     vector<Punto> puntos = archivosCSV.getPuntos();
-    string codigo = mayusculas(leerTexto("Codigo del punto (Ej: P001): "));
+    string codigo = mayusculas(leerTexto(
+        "Codigo de punto (Enter: listar todos; Ej: P001): "));
+    if (codigo.empty()) {
+      mostrarListaPuntos(puntos);
+      return;
+    }
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
       if (puntos[i].getCodigo() == codigo) {
@@ -80,34 +109,63 @@ private:
 
   void consultarConexion() const {
     vector<Conexion> conexiones = archivosCSV.getConexiones();
-    string codigo =
-        mayusculas(leerTexto("Codigo de la conexion (Ej: C001) : "));
+    string criterio = mayusculas(leerTexto(
+        "Codigo de conexion o punto (Enter: listar todas): "));
+    if (criterio.empty()) {
+      cout << "\nConexiones registradas (" << conexiones.size() << "):\n";
+      for (int i = 0; i < static_cast<int>(conexiones.size()); ++i)
+        mostrarConexion(conexiones[i]);
+      return;
+    }
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(conexiones.size()); ++i) {
-      if (conexiones[i].getCodigo() == codigo) {
-        cout << conexiones[i].getCodigo() << " | " << conexiones[i].getOrigen()
-             << " -> " << conexiones[i].getDestino() << " | "
-             << conexiones[i].getDistancia() << " km | "
-             << conexiones[i].getTiempo() << " min | "
-             << archivosCSV.textoEstadoConexion(conexiones[i].getEstado())
-             << "\n";
+      if (conexiones[i].getCodigo() == criterio ||
+          conexiones[i].getOrigen() == criterio ||
+          conexiones[i].getDestino() == criterio) {
+        mostrarConexion(conexiones[i]);
         encontrado = true;
       }
     }
-    mostrarNoEncontrado(encontrado, "conexion", codigo);
+    mostrarNoEncontrado(encontrado, "conexion o punto", criterio);
+  }
+
+  void mostrarSolicitudesUnidad(const vector<Solicitud> &solicitudes,
+                                const string &codigoUnidad) const {
+    int cantidad = 0;
+    for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i)
+      if (solicitudes[i].getUnidadAsignada() == codigoUnidad) cantidad++;
+    cout << "   Solicitudes asignadas (" << cantidad << "):";
+    if (cantidad == 0) {
+      cout << " ninguna\n";
+      return;
+    }
+    cout << "\n";
+    for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
+      if (solicitudes[i].getUnidadAsignada() == codigoUnidad) {
+        cout << "   ";
+        mostrarSolicitud(solicitudes[i]);
+      }
+    }
   }
 
   void consultarUnidad() const {
     vector<Unidad> unidades = archivosCSV.getUnidades();
-    string codigo = mayusculas(leerTexto("Codigo de la unidad (Ej: U001): "));
+    vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
+    string codigo = mayusculas(leerTexto(
+        "Codigo de unidad (Enter: listar todas): "));
+    if (codigo.empty()) {
+      cout << "\nUnidades y solicitudes asignadas:\n";
+      for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
+        mostrarUnidad(unidades[i]);
+        mostrarSolicitudesUnidad(solicitudes, unidades[i].getCodigo());
+      }
+      return;
+    }
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
       if (unidades[i].getCodigo() == codigo) {
-        cout << unidades[i].getCodigo() << " | "
-             << archivosCSV.textoTipoUnidad(unidades[i].getTipo()) << " | "
-             << unidades[i].getCapacidad()
-             << " turistas | costo/km: " << unidades[i].getCostoKm() << " | "
-             << archivosCSV.textoEstadoUnidad(unidades[i].getEstado()) << "\n";
+        mostrarUnidad(unidades[i]);
+        mostrarSolicitudesUnidad(solicitudes, unidades[i].getCodigo());
         encontrado = true;
       }
     }
@@ -116,33 +174,42 @@ private:
 
   void consultarSolicitud() const {
     vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
-    string codigo =
-        mayusculas(leerTexto("Codigo de la solicitud (Ej: S001): "));
+    string criterio = mayusculas(leerTexto(
+        "Codigo o estado (pendiente/asignada/entregada; Enter: listar todas): "));
+    if (criterio.empty()) {
+      cout << "\nSolicitudes registradas (" << solicitudes.size() << "):\n";
+      for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i)
+        mostrarSolicitud(solicitudes[i]);
+      return;
+    }
     bool encontrado = false;
     for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
-      if (solicitudes[i].getCodigo() == codigo) {
+      if (solicitudes[i].getCodigo() == criterio ||
+          mayusculas(archivosCSV.textoEstadoSolicitud(
+              solicitudes[i].getEstado())) == criterio) {
         mostrarSolicitud(solicitudes[i]);
         encontrado = true;
       }
     }
-    mostrarNoEncontrado(encontrado, "solicitud", codigo);
+    mostrarNoEncontrado(encontrado, "solicitud o estado", criterio);
   }
-
 public:
   explicit MenuConsultas(const ArchivosCSV &datos) : archivosCSV(datos) {}
 
   void ejecutar() const {
     cout << "\n=== Consultas basicas ===\n"
-         << "1. Punto\n2. Conexion\n3. Unidad\n4. Solicitud\n0. Volver\n";
+         << "Escribe un codigo o criterio. Presiona Enter para listar todo.\n"
+         << "1. Puntos\n2. Conexiones\n3. Solicitudes por estado\n"
+         << "4. Unidades y solicitudes asignadas\n0. Volver\n";
     string opcion = leerTexto("Opcion: ");
     if (opcion == "1")
       consultarPunto();
     else if (opcion == "2")
       consultarConexion();
     else if (opcion == "3")
-      consultarUnidad();
-    else if (opcion == "4")
       consultarSolicitud();
+    else if (opcion == "4")
+      consultarUnidad();
     else if (opcion != "0")
       cout << "Opcion invalida.\n";
   }
