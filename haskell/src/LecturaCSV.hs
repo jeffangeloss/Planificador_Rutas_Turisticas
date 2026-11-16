@@ -30,6 +30,7 @@ leerFilas ruta = do
   let filas = map quitarRetorno (drop 1 (lines contenido))
   return (filter (\fila -> not (all isSpace fila)) filas)
 
+-- Convierte el texto de un tipo de punto en su valor, o Nothing si no es valido.
 parsearTipoPunto :: String -> Maybe TipoPunto
 parsearTipoPunto "agencia" = Just Agencia
 parsearTipoPunto "hotel" = Just Hotel
@@ -38,40 +39,47 @@ parsearTipoPunto "mirador" = Just Mirador
 parsearTipoPunto "espacio_publico" = Just EspacioPublico
 parsearTipoPunto _ = Nothing
 
+-- Convierte el texto de un tipo de unidad en su valor, o Nothing si no es valido.
 parsearTipoUnidad :: String -> Maybe TipoUnidad
 parsearTipoUnidad "guia_peatonal" = Just GuiaPeatonal
 parsearTipoUnidad "taxi_turistico" = Just TaxiTuristico
 parsearTipoUnidad "bus_turistico" = Just BusTuristico
 parsearTipoUnidad _ = Nothing
 
+-- Convierte el texto de un tipo de visitante en su valor, o Nothing si no es valido.
 parsearTipoVisitante :: String -> Maybe TipoVisitante
 parsearTipoVisitante "general" = Just General
 parsearTipoVisitante "estudiante" = Just Estudiante
 parsearTipoVisitante "nino" = Just Nino
 parsearTipoVisitante _ = Nothing
 
+-- Convierte el texto de un estado de conexion en su valor, o Nothing si no es valido.
 parsearEstadoConexion :: String -> Maybe EstadoConexion
 parsearEstadoConexion "habilitada" = Just Habilitada
 parsearEstadoConexion "cerrada" = Just Cerrada
 parsearEstadoConexion _ = Nothing
 
+-- Convierte el texto de un estado de unidad en su valor, o Nothing si no es valido.
 parsearEstadoUnidad :: String -> Maybe EstadoUnidad
 parsearEstadoUnidad "disponible" = Just Disponible
 parsearEstadoUnidad "ocupada" = Just Ocupada
 parsearEstadoUnidad _ = Nothing
 
+-- Convierte el texto de un estado de solicitud en su valor, o Nothing si no es valido.
 parsearEstadoSolicitud :: String -> Maybe EstadoSolicitud
 parsearEstadoSolicitud "pendiente" = Just Pendiente
 parsearEstadoSolicitud "asignada" = Just Asignada
 parsearEstadoSolicitud "entregada" = Just Entregada
 parsearEstadoSolicitud _ = Nothing
 
+-- Convierte el texto de una prioridad en su valor, o Nothing si no es valida.
 parsearPrioridad :: String -> Maybe Prioridad
 parsearPrioridad "baja" = Just Baja
 parsearPrioridad "media" = Just Media
 parsearPrioridad "alta" = Just Alta
 parsearPrioridad _ = Nothing
 
+-- Convierte una fila del CSV en un punto, o Nothing si esta mal formada.
 parsearPunto :: String -> Maybe Punto
 parsearPunto fila =
   case separarCampos fila of
@@ -94,6 +102,7 @@ parsearConexion fila =
         else Nothing
     _ -> Nothing
 
+-- Convierte una fila del CSV en una unidad, o Nothing si sus datos no son validos.
 parsearUnidad :: String -> Maybe Unidad
 parsearUnidad fila =
   case separarCampos fila of
@@ -107,6 +116,7 @@ parsearUnidad fila =
         else Nothing
     _ -> Nothing
 
+-- Convierte una fila del CSV en una solicitud, o Nothing si sus datos no son validos.
 parsearSolicitud :: String -> Maybe Solicitud
 parsearSolicitud fila =
   case separarCampos fila of
@@ -127,6 +137,7 @@ unidadAsignadaDe :: String -> Maybe String
 unidadAsignadaDe "" = Nothing
 unidadAsignadaDe codigo = Just codigo
 
+-- Convierte una fila del CSV en un visitante, o Nothing si esta mal formada.
 parsearVisitante :: String -> Maybe Visitante
 parsearVisitante fila =
   case separarCampos fila of
@@ -135,6 +146,7 @@ parsearVisitante fila =
       pure (Visitante solicitud tipo)
     _ -> Nothing
 
+-- Convierte una fila del CSV en una entrada, o Nothing si sus datos no son validos.
 parsearEntrada :: String -> Maybe Entrada
 parsearEntrada fila =
   case separarCampos fila of
@@ -167,6 +179,7 @@ leerYParsear parsear ruta = do
   filas <- leerFilas ruta
   length filas `seq` return (parsearFilas parsear filas)
 
+-- Devuelve Nothing cuando falla la lectura de un archivo.
 sinArchivo :: IOError -> IO (Maybe [a])
 sinArchivo _ = return Nothing
 
@@ -174,20 +187,26 @@ sinArchivo _ = return Nothing
 leerCSV :: (String -> Maybe a) -> FilePath -> IO (Maybe [a])
 leerCSV parsear ruta = catchIOError (leerYParsear parsear ruta) sinArchivo
 
+-- Lee el CSV de puntos de la ruta, o Nothing si falla o tiene una fila invalida.
 leerPuntos :: FilePath -> IO (Maybe [Punto])
 leerPuntos = leerCSV parsearPunto
 
+-- Lee el CSV de conexiones de la ruta, o Nothing si falla o tiene una fila invalida.
 leerConexiones :: FilePath -> IO (Maybe [Conexion])
 leerConexiones ruta = leerCSV parsearConexion ruta
 
+-- Lee el CSV de unidades de la ruta, o Nothing si falla o tiene una fila invalida.
 leerUnidades :: FilePath -> IO (Maybe [Unidad])
 leerUnidades ruta = leerCSV parsearUnidad ruta
 
+-- Lee el CSV de solicitudes de la ruta, o Nothing si falla o tiene una fila invalida.
 leerSolicitudes :: FilePath -> IO (Maybe [Solicitud])
 leerSolicitudes ruta = leerCSV parsearSolicitud ruta
 
+-- Lee el CSV de visitantes de la ruta, o Nothing si falla o tiene una fila invalida.
 leerVisitantes :: FilePath -> IO (Maybe [Visitante])
 leerVisitantes = leerCSV parsearVisitante
 
+-- Lee el CSV de entradas de la ruta, o Nothing si falla o tiene una fila invalida.
 leerEntradas :: FilePath -> IO (Maybe [Entrada])
 leerEntradas = leerCSV parsearEntrada

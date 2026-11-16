@@ -16,10 +16,12 @@
 using namespace std;
 
 // Ayudantes declarados en FA03.h.
+// Indica si el tipo de punto admite cupos por turno.
 bool admiteCupo(TipoPunto tipo) {
   return tipo == TipoPunto::Atractivo || tipo == TipoPunto::Mirador;
 }
 
+// Devuelve la posicion del punto con ese codigo, o -1 si no existe.
 int indicePunto(const vector<Punto> &puntos, const string &codigo) {
   for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
     if (puntos[i].getCodigo() == codigo) return i;
@@ -27,6 +29,7 @@ int indicePunto(const vector<Punto> &puntos, const string &codigo) {
   return -1;
 }
 
+// Devuelve la posicion de la solicitud con ese codigo, o -1 si no existe.
 int indiceSolicitud(const vector<Solicitud> &solicitudes, const string &codigo) {
   for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
     if (solicitudes[i].getCodigo() == codigo) return i;
@@ -61,6 +64,7 @@ string motivoReservaInvalida(const Reserva &reserva,
 
 }  // namespace
 
+// Valida los cupos y reservas leidos y arma la agenda de FA03 con sus errores.
 CargaFA03 armarCargaFA03(const vector<Cupo> &cuposLeidos,
                          const vector<Reserva> &reservasLeidas,
                          bool hayFilasMalFormadas, const vector<Punto> &puntos,
@@ -121,6 +125,7 @@ CargaFA03 armarCargaFA03(const vector<Cupo> &cuposLeidos,
   return CargaFA03{cupos, reservas, agenda, errores, promovidas, descartes};
 }
 
+// Guarda cupos y reservas segun el cambio y restaura cupos.csv si falla reservas.csv.
 GuardadoFA03 guardarCambioFA03(bool cupos, bool reservas,
                                const function<bool()> &escribirCupos,
                                const function<bool()> &escribirReservas,
@@ -134,6 +139,7 @@ GuardadoFA03 guardarCambioFA03(bool cupos, bool reservas,
   return GuardadoFA03::Revertido;
 }
 
+// Elige la agenda que queda en memoria segun el resultado del guardado.
 AgendaCupos agendaSegunGuardadoFA03(GuardadoFA03 resultado, const AgendaCupos &nueva,
                                     const AgendaCupos &anterior) {
   if (resultado == GuardadoFA03::Guardado) return nueva;
@@ -142,6 +148,7 @@ AgendaCupos agendaSegunGuardadoFA03(GuardadoFA03 resultado, const AgendaCupos &n
   return AgendaCupos(nueva.getCupos(), anterior.getReservas());
 }
 
+// Abre el submenu de reservas de cupos de FA03.
 void ejecutarFA03(const ArchivosCSV &archivosCSV) {
   MenuReservas menu(archivosCSV);
   menu.ejecutar();

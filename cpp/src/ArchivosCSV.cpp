@@ -10,11 +10,13 @@
 
 using namespace std;
 
+// Guarda la carpeta donde estan los archivos CSV.
 ArchivosCSV::ArchivosCSV(string carpetaDatos) {
   this->carpetaDatos = carpetaDatos;
 }
 
 // 4.1.2 Carga inicial. Responsable: Jefferson Sanchez.
+// Carga los cuatro CSV iniciales en memoria y muestra cuantos registros leyo.
 void ArchivosCSV::cargarDatosIniciales() {
   const vector<string> archivos = {"puntos.csv", "conexiones.csv",
                                    "unidades.csv", "solicitudes.csv"};
@@ -33,6 +35,7 @@ void ArchivosCSV::cargarDatosIniciales() {
        << "Solicitudes cargadas: " << solicitudes.size() << '\n';
 }
 
+// Vuelve a leer los cuatro CSV y reemplaza los datos en memoria.
 void ArchivosCSV::actualizarDatos() {
   puntos = cargarPuntos();
   conexiones = cargarConexiones();
@@ -40,10 +43,12 @@ void ArchivosCSV::actualizarDatos() {
   solicitudes = cargarSolicitudes();
 }
 
+// Devuelve la ruta de un archivo dentro de la carpeta de datos.
 string ArchivosCSV::rutaArchivo(const string &nombre) const {
   return carpetaDatos + "/" + nombre;
 }
 
+// Divide una linea del CSV en sus campos separados por coma.
 vector<string> ArchivosCSV::separarCampos(const string &linea) const {
   // Corta en cada coma; los CSV del proyecto no usan comillas.
   vector<string> campos;
@@ -60,6 +65,7 @@ vector<string> ArchivosCSV::separarCampos(const string &linea) const {
   return campos;
 }
 
+// Lee las filas con datos de un CSV, sin el encabezado; false si no abre.
 bool ArchivosCSV::leerFilas(const string &nombre, vector<string> &filas) const {
   ifstream archivo(rutaArchivo(nombre).c_str());
   if (!archivo) return false;
@@ -76,12 +82,14 @@ bool ArchivosCSV::leerFilas(const string &nombre, vector<string> &filas) const {
 
 // Los cargadores pasan i + 2: la fila 1 del archivo es el encabezado e i
 // empieza en 0 (las lineas vacias no se cuentan).
+// Muestra el aviso de que una fila del CSV es invalida.
 void ArchivosCSV::mostrarFilaInvalida(const string &archivo,
                                       int numeroFila) const {
   cout << "[ERROR] Fila " << numeroFila << " invalida en " << archivo
        << ".\n";
 }
 
+// Convierte el texto del CSV en un tipo de punto; false si no lo reconoce.
 bool ArchivosCSV::convertirTipoPunto(const string &texto,
                                      TipoPunto &tipo) const {
   if (texto == "agencia") tipo = TipoPunto::Agencia;
@@ -93,6 +101,7 @@ bool ArchivosCSV::convertirTipoPunto(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en un tipo de unidad; false si no lo reconoce.
 bool ArchivosCSV::convertirTipoUnidad(const string &texto,
                                       TipoUnidad &tipo) const {
   if (texto == "guia_peatonal") tipo = TipoUnidad::GuiaPeatonal;
@@ -102,6 +111,7 @@ bool ArchivosCSV::convertirTipoUnidad(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en un tipo de visitante; false si no lo reconoce.
 bool ArchivosCSV::convertirTipoVisitante(const string &texto,
                                          TipoVisitante &tipo) const {
   if (texto == "general") tipo = TipoVisitante::General;
@@ -111,6 +121,7 @@ bool ArchivosCSV::convertirTipoVisitante(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en un estado de conexion; false si no lo reconoce.
 bool ArchivosCSV::convertirEstadoConexion(const string &texto,
                                           EstadoConexion &estado) const {
   if (texto == "habilitada") estado = EstadoConexion::Habilitada;
@@ -119,6 +130,7 @@ bool ArchivosCSV::convertirEstadoConexion(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en un estado de unidad; false si no lo reconoce.
 bool ArchivosCSV::convertirEstadoUnidad(const string &texto,
                                         EstadoUnidad &estado) const {
   if (texto == "disponible") estado = EstadoUnidad::Disponible;
@@ -127,6 +139,7 @@ bool ArchivosCSV::convertirEstadoUnidad(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en una prioridad; false si no la reconoce.
 bool ArchivosCSV::convertirPrioridad(const string &texto,
                                      Prioridad &prioridad) const {
   if (texto == "baja") prioridad = Prioridad::Baja;
@@ -136,6 +149,7 @@ bool ArchivosCSV::convertirPrioridad(const string &texto,
   return true;
 }
 
+// Convierte el texto del CSV en un estado de solicitud; false si no lo reconoce.
 bool ArchivosCSV::convertirEstadoSolicitud(const string &texto,
                                            EstadoSolicitud &estado) const {
   if (texto == "pendiente") estado = EstadoSolicitud::Pendiente;
@@ -151,6 +165,7 @@ const int CAMPOS_CONEXION = 6;
 const int CAMPOS_UNIDAD = 5;
 const int CAMPOS_SOLICITUD = 7;
 
+// Carga puntos.csv y descarta con aviso las filas invalidas.
 vector<Punto> ArchivosCSV::cargarPuntos() const {
   vector<Punto> puntosCargados;
   vector<string> filas;
@@ -190,6 +205,7 @@ bool estaEnLista(const vector<string> &lista, const string &texto) {
 
 } // namespace
 
+// Carga conexiones.csv validando distancia, tiempo y estado de cada fila.
 vector<Conexion> ArchivosCSV::cargarConexiones() const {
   vector<Conexion> conexionesCargadas;
   vector<string> filas;
@@ -216,6 +232,7 @@ vector<Conexion> ArchivosCSV::cargarConexiones() const {
   return conexionesCargadas;
 }
 
+// Carga unidades.csv validando tipo, capacidad, costo y estado de cada fila.
 vector<Unidad> ArchivosCSV::cargarUnidades() const {
   vector<Unidad> unidadesCargadas;
   vector<string> filas;
@@ -243,6 +260,7 @@ vector<Unidad> ArchivosCSV::cargarUnidades() const {
   return unidadesCargadas;
 }
 
+// Carga solicitudes.csv validando turistas, prioridad y estado de cada fila.
 vector<Solicitud> ArchivosCSV::cargarSolicitudes() const {
   vector<Solicitud> solicitudesCargadas;
   vector<string> filas;
@@ -269,6 +287,7 @@ vector<Solicitud> ArchivosCSV::cargarSolicitudes() const {
   return solicitudesCargadas;
 }
 
+// Carga visitantes.csv validando el tipo de cada visitante.
 vector<Visitante> ArchivosCSV::cargarVisitantes() const {
   vector<Visitante> visitantes;
   vector<string> filas;
@@ -286,6 +305,7 @@ vector<Visitante> ArchivosCSV::cargarVisitantes() const {
   return visitantes;
 }
 
+// Devuelven los puntos, conexiones, unidades y solicitudes cargados en memoria.
 vector<Punto> ArchivosCSV::getPuntos() const { return puntos; }
 
 vector<Conexion> ArchivosCSV::getConexiones() const { return conexiones; }
@@ -294,6 +314,7 @@ vector<Unidad> ArchivosCSV::getUnidades() const { return unidades; }
 
 vector<Solicitud> ArchivosCSV::getSolicitudes() const { return solicitudes; }
 
+// Devuelve el texto del CSV que corresponde a un tipo de punto.
 string ArchivosCSV::textoTipoPunto(TipoPunto tipo) const {
   if (tipo == TipoPunto::Agencia) return "agencia";
   if (tipo == TipoPunto::Hotel) return "hotel";
@@ -302,40 +323,47 @@ string ArchivosCSV::textoTipoPunto(TipoPunto tipo) const {
   return "espacio_publico";
 }
 
+// Devuelve el texto del CSV que corresponde a un tipo de unidad.
 string ArchivosCSV::textoTipoUnidad(TipoUnidad tipo) const {
   if (tipo == TipoUnidad::GuiaPeatonal) return "guia_peatonal";
   if (tipo == TipoUnidad::TaxiTuristico) return "taxi_turistico";
   return "bus_turistico";
 }
 
+// Devuelve el texto del CSV que corresponde a un tipo de visitante.
 string ArchivosCSV::textoTipoVisitante(TipoVisitante tipo) const {
   if (tipo == TipoVisitante::General) return "general";
   if (tipo == TipoVisitante::Estudiante) return "estudiante";
   return "nino";
 }
 
+// Devuelve el texto del CSV que corresponde a un estado de conexion.
 string ArchivosCSV::textoEstadoConexion(EstadoConexion estado) const {
   if (estado == EstadoConexion::Habilitada) return "habilitada";
   return "cerrada";
 }
 
+// Devuelve el texto del CSV que corresponde a un estado de unidad.
 string ArchivosCSV::textoEstadoUnidad(EstadoUnidad estado) const {
   if (estado == EstadoUnidad::Disponible) return "disponible";
   return "ocupada";
 }
 
+// Devuelve el texto del CSV que corresponde a una prioridad.
 string ArchivosCSV::textoPrioridad(Prioridad prioridad) const {
   if (prioridad == Prioridad::Baja) return "baja";
   if (prioridad == Prioridad::Media) return "media";
   return "alta";
 }
 
+// Devuelve el texto del CSV que corresponde a un estado de solicitud.
 string ArchivosCSV::textoEstadoSolicitud(EstadoSolicitud estado) const {
   if (estado == EstadoSolicitud::Pendiente) return "pendiente";
   if (estado == EstadoSolicitud::Asignada) return "asignada";
   return "entregada";
 }
 
+// Dice si el archivo existe en la carpeta de datos.
 bool ArchivosCSV::archivoExiste(const string &nombre) const {
   ifstream archivo(rutaArchivo(nombre).c_str());
   return static_cast<bool>(archivo);
@@ -378,6 +406,7 @@ bool guardarCSV(const filesystem::path &destino, const string &contenido) {
 
 } // namespace
 
+// Reescribe puntos.csv completo con la lista de puntos recibida.
 bool ArchivosCSV::guardarPuntos(
     const vector<Punto> &puntosActualizados) const {
   ostringstream contenido;
@@ -390,6 +419,7 @@ bool ArchivosCSV::guardarPuntos(
   return guardarCSV(rutaArchivo("puntos.csv"), contenido.str());
 }
 
+// Reescribe conexiones.csv completo con la lista de conexiones recibida.
 bool ArchivosCSV::guardarConexiones(
     const vector<Conexion> &conexionesActualizadas) const {
   ostringstream contenido;
@@ -403,6 +433,7 @@ bool ArchivosCSV::guardarConexiones(
   return guardarCSV(rutaArchivo("conexiones.csv"), contenido.str());
 }
 
+// Dice si ya hay un punto en memoria con ese codigo.
 bool ArchivosCSV::existePunto(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
     if (puntos[i].getCodigo() == codigo) return true;
@@ -410,6 +441,7 @@ bool ArchivosCSV::existePunto(const string &codigo) const {
   return false;
 }
 
+// Dice si ya hay una conexion en memoria con ese codigo.
 bool ArchivosCSV::existeConexion(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(conexiones.size()); ++i) {
     if (conexiones[i].getCodigo() == codigo) return true;
@@ -417,6 +449,7 @@ bool ArchivosCSV::existeConexion(const string &codigo) const {
   return false;
 }
 
+// Dice si ya hay una unidad en memoria con ese codigo.
 bool ArchivosCSV::existeUnidad(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
     if (unidades[i].getCodigo() == codigo) return true;
@@ -424,6 +457,7 @@ bool ArchivosCSV::existeUnidad(const string &codigo) const {
   return false;
 }
 
+// Dice si ya hay una solicitud en memoria con ese codigo.
 bool ArchivosCSV::existeSolicitud(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
     if (solicitudes[i].getCodigo() == codigo) return true;
@@ -431,6 +465,7 @@ bool ArchivosCSV::existeSolicitud(const string &codigo) const {
   return false;
 }
 
+// Agrega un punto al final de puntos.csv.
 bool ArchivosCSV::agregarPunto(const Punto &punto) const {
   ofstream archivo(rutaArchivo("puntos.csv").c_str(), ios::app);
   if (!archivo) return false;
@@ -439,6 +474,7 @@ bool ArchivosCSV::agregarPunto(const Punto &punto) const {
   return archivo.good();
 }
 
+// Agrega una conexion al final de conexiones.csv.
 bool ArchivosCSV::agregarConexion(const Conexion &conexion) const {
   ofstream archivo(rutaArchivo("conexiones.csv").c_str(), ios::app);
   if (!archivo) return false;
@@ -449,6 +485,7 @@ bool ArchivosCSV::agregarConexion(const Conexion &conexion) const {
   return archivo.good();
 }
 
+// Agrega una unidad al final de unidades.csv.
 bool ArchivosCSV::agregarUnidad(const Unidad &unidad) const {
   ofstream archivo(rutaArchivo("unidades.csv").c_str(), ios::app);
   if (!archivo) return false;
@@ -459,6 +496,7 @@ bool ArchivosCSV::agregarUnidad(const Unidad &unidad) const {
   return archivo.good();
 }
 
+// Agrega una solicitud al final de solicitudes.csv.
 bool ArchivosCSV::agregarSolicitud(const Solicitud &solicitud) const {
   ofstream archivo(rutaArchivo("solicitudes.csv").c_str(), ios::app);
   if (!archivo) return false;
@@ -470,6 +508,7 @@ bool ArchivosCSV::agregarSolicitud(const Solicitud &solicitud) const {
   return archivo.good();
 }
 
+// Reescribe unidades.csv y solicitudes.csv con las listas recibidas.
 bool ArchivosCSV::guardarUnidadesYSolicitudes(
     const vector<Unidad> &nuevasUnidades,
     const vector<Solicitud> &nuevasSolicitudes) const {
@@ -504,6 +543,7 @@ bool ArchivosCSV::guardarUnidadesYSolicitudes(
   return archivoUnidades.good() && archivoSolicitudes.good();
 }
 
+// Reescribe unidades.csv, solicitudes.csv y visitantes.csv del plan FA02.
 bool ArchivosCSV::guardarPlanFA02(
     const vector<Unidad> &nuevasUnidades,
     const vector<Solicitud> &nuevasSolicitudes,
@@ -551,6 +591,7 @@ bool ArchivosCSV::guardarPlanFA02(
 // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 // Lee y guarda cupos y reservas sin dejar archivos incompletos.
 
+// Convierte el texto del CSV en un estado de reserva; false si no lo reconoce.
 bool ArchivosCSV::convertirEstadoReserva(const string &texto,
                                          EstadoReserva &estado) const {
   if (texto == "confirmada") estado = EstadoReserva::Confirmada;
@@ -560,6 +601,7 @@ bool ArchivosCSV::convertirEstadoReserva(const string &texto,
   return true;
 }
 
+// Devuelve el texto del CSV que corresponde a un estado de reserva.
 string ArchivosCSV::textoEstadoReserva(EstadoReserva estado) const {
   if (estado == EstadoReserva::Confirmada) return "confirmada";
   if (estado == EstadoReserva::EnEspera) return "en_espera";
@@ -570,6 +612,7 @@ string ArchivosCSV::textoEstadoReserva(EstadoReserva estado) const {
 const int CAMPOS_CUPO = 3;
 const int CAMPOS_RESERVA = 8;
 
+// Carga cupos.csv descartando filas invalidas y pares punto-turno repetidos.
 vector<Cupo> ArchivosCSV::cargarCupos() const {
   vector<Cupo> cupos;
   vector<string> filas;
@@ -595,6 +638,7 @@ vector<Cupo> ArchivosCSV::cargarCupos() const {
   return cupos;
 }
 
+// Carga reservas.csv descartando filas invalidas y codigos repetidos.
 vector<Reserva> ArchivosCSV::cargarReservas() const {
   vector<Reserva> reservas;
   vector<string> filas;
@@ -627,6 +671,7 @@ vector<Reserva> ArchivosCSV::cargarReservas() const {
   return reservas;
 }
 
+// Reescribe cupos.csv completo con los cupos recibidos.
 bool ArchivosCSV::guardarCupos(const vector<Cupo> &cupos) const {
   ostringstream contenido;
   contenido << "punto,turno,capacidad_maxima\n";
@@ -637,6 +682,7 @@ bool ArchivosCSV::guardarCupos(const vector<Cupo> &cupos) const {
   return guardarCSV(rutaArchivo("cupos.csv"), contenido.str());
 }
 
+// Reescribe reservas.csv completo con las reservas recibidas.
 bool ArchivosCSV::guardarReservas(const vector<Reserva> &reservas) const {
   ostringstream contenido;
   contenido << "codigo,solicitud,punto,fecha,turno,personas,estado,"
@@ -651,6 +697,7 @@ bool ArchivosCSV::guardarReservas(const vector<Reserva> &reservas) const {
   return guardarCSV(rutaArchivo("reservas.csv"), contenido.str());
 }
 
+// Cuenta las filas con datos de un CSV, sin contar el encabezado.
 int ArchivosCSV::contarFilas(const string &nombre) const {
   vector<string> filas;
   leerFilas(nombre, filas);

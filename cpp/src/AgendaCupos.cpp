@@ -10,13 +10,16 @@ using namespace std;
 
 // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
+// Crea la agenda con los cupos y reservas indicados.
 AgendaCupos::AgendaCupos(vector<Cupo> cupos, vector<Reserva> reservas)
     : cupos(std::move(cupos)), reservas(std::move(reservas)) {}
 
+// Devuelven los cupos y las reservas de la agenda.
 const vector<Cupo> &AgendaCupos::getCupos() const { return cupos; }
 
 const vector<Reserva> &AgendaCupos::getReservas() const { return reservas; }
 
+// Devuelve la posicion del cupo de ese punto y turno, o -1 si no existe.
 int AgendaCupos::indiceCupo(const string &punto, const string &turno) const {
   for (int i = 0; i < static_cast<int>(cupos.size()); ++i) {
     if (cupos[i].esDe(punto, turno)) return i;
@@ -24,6 +27,7 @@ int AgendaCupos::indiceCupo(const string &punto, const string &turno) const {
   return -1;
 }
 
+// Devuelve la posicion de la reserva con ese codigo, o -1 si no existe.
 int AgendaCupos::indiceReserva(const string &codigo) const {
   for (int i = 0; i < static_cast<int>(reservas.size()); ++i) {
     if (reservas[i].getCodigo() == codigo) return i;
@@ -31,11 +35,13 @@ int AgendaCupos::indiceReserva(const string &codigo) const {
   return -1;
 }
 
+// Devuelve la capacidad del turno, o -1 si no tiene cupo registrado.
 int AgendaCupos::capacidad(const string &punto, const string &turno) const {
   int i = indiceCupo(punto, turno);
   return i == -1 ? -1 : cupos[i].getCapacidadMaxima();
 }
 
+// Suma las personas confirmadas en el punto, fecha y turno.
 int AgendaCupos::ocupados(const string &punto, const string &fecha,
                           const string &turno) const {
   int total = 0;
@@ -47,6 +53,7 @@ int AgendaCupos::ocupados(const string &punto, const string &fecha,
   return total;
 }
 
+// Devuelve las posiciones de las reservas en espera del turno, por orden de espera.
 vector<int> AgendaCupos::indicesEnEspera(const string &punto,
                                          const string &fecha,
                                          const string &turno) const {
@@ -62,6 +69,7 @@ vector<int> AgendaCupos::indicesEnEspera(const string &punto,
   return indices;
 }
 
+// Devuelve las reservas en espera del turno, por orden de espera.
 vector<Reserva> AgendaCupos::enEspera(const string &punto, const string &fecha,
                                       const string &turno) const {
   vector<Reserva> cola;
@@ -69,6 +77,7 @@ vector<Reserva> AgendaCupos::enEspera(const string &punto, const string &fecha,
   return cola;
 }
 
+// Indica si la solicitud tiene una reserva activa en esa fecha y turno.
 bool AgendaCupos::tieneReservaActiva(const string &solicitud,
                                      const string &fecha,
                                      const string &turno) const {
@@ -81,6 +90,7 @@ bool AgendaCupos::tieneReservaActiva(const string &solicitud,
   return false;
 }
 
+// Devuelve el codigo de reserva siguiente al mayor registrado, o vacio si no hay.
 string AgendaCupos::siguienteCodigo() const {
   long long mayor = 0;
   for (const Reserva &reserva : reservas) {
@@ -99,6 +109,7 @@ string AgendaCupos::siguienteCodigo() const {
   return nuevo.str();
 }
 
+// Crea una reserva confirmada si cabe, o en espera si no, y la agrega a la agenda.
 bool AgendaCupos::reservar(const string &solicitud, const string &punto,
                            const string &fecha, const string &turno,
                            int personas, Reserva &creada) {
@@ -140,6 +151,7 @@ void AgendaCupos::promover(const string &punto, const string &fecha,
   renumerarEspera(punto, fecha, turno);
 }
 
+// Renumera la espera del turno desde 1 conservando su orden.
 void AgendaCupos::renumerarEspera(const string &punto, const string &fecha,
                                   const string &turno) {
   vector<int> indices = indicesEnEspera(punto, fecha, turno);
@@ -148,6 +160,7 @@ void AgendaCupos::renumerarEspera(const string &punto, const string &fecha,
   }
 }
 
+// Cancela una reserva activa y promueve la espera si libera cupos.
 bool AgendaCupos::cancelar(const string &codigo, vector<string> &promovidas) {
   int i = indiceReserva(codigo);
   if (i == -1 || !reservas[i].estaActiva()) return false;
@@ -166,6 +179,7 @@ bool AgendaCupos::cancelar(const string &codigo, vector<string> &promovidas) {
   return true;
 }
 
+// Crea o cambia la capacidad de un turno y promueve la espera que ya cabe.
 bool AgendaCupos::fijarCupo(const string &punto, const string &turno,
                             int capacidadNueva, vector<string> &promovidas) {
   if (capacidadNueva <= 0) return false;
@@ -200,6 +214,7 @@ bool AgendaCupos::fijarCupo(const string &punto, const string &turno,
   return true;
 }
 
+// Promueve la espera de cada turno y devuelve los codigos de las reservas promovidas.
 vector<string> AgendaCupos::normalizar() {
   vector<string> promovidas;
   // Indice de la primera reserva en espera de cada turno ya promovido, para

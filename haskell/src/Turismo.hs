@@ -9,6 +9,7 @@ data Destino = Destino
   }
   deriving (Eq, Show)
 
+-- Devuelve el nombre y el pais del destino separados por una coma.
 descripcion :: Destino -> String
 descripcion destino = nombre destino ++ ", " ++ pais destino
 

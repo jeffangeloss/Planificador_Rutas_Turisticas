@@ -5,9 +5,11 @@
 
 // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
+// Crea una reserva vacia y cancelada.
 Reserva::Reserva()
     : personas(0), estado(EstadoReserva::Cancelada), ordenEspera(0) {}
 
+// Crea una reserva con su solicitud, punto, fecha, turno, personas y estado.
 Reserva::Reserva(std::string _codigo, std::string _solicitud, std::string _punto,
                  std::string _fecha, std::string _turno, int _personas,
                  EstadoReserva _estado, int _ordenEspera) {
@@ -21,6 +23,7 @@ Reserva::Reserva(std::string _codigo, std::string _solicitud, std::string _punto
   ordenEspera = _ordenEspera;
 }
 
+// Devuelven el codigo, solicitud, punto, fecha, turno, personas, estado y orden de espera.
 std::string Reserva::getCodigo() const { return codigo; }
 
 std::string Reserva::getSolicitud() const { return solicitud; }
@@ -37,30 +40,37 @@ EstadoReserva Reserva::getEstado() const { return estado; }
 
 int Reserva::getOrdenEspera() const { return ordenEspera; }
 
+// Indica si la reserva esta confirmada.
 bool Reserva::estaConfirmada() const {
   return estado == EstadoReserva::Confirmada;
 }
 
+// Indica si la reserva esta en espera.
 bool Reserva::estaEnEspera() const { return estado == EstadoReserva::EnEspera; }
 
+// Indica si la reserva no esta cancelada.
 bool Reserva::estaActiva() const { return estado != EstadoReserva::Cancelada; }
 
+// Indica si la reserva es de ese punto, fecha y turno.
 bool Reserva::esDelTurno(const std::string &puntoBuscado,
                          const std::string &fechaBuscada,
                          const std::string &turnoBuscado) const {
   return punto == puntoBuscado && fecha == fechaBuscada && turno == turnoBuscado;
 }
 
+// Marca la reserva como confirmada y la saca de la espera.
 void Reserva::confirmar() {
   estado = EstadoReserva::Confirmada;
   ordenEspera = 0;
 }
 
+// Pone la reserva en espera con el orden indicado.
 void Reserva::ponerEnEspera(int orden) {
   estado = EstadoReserva::EnEspera;
   ordenEspera = orden;
 }
 
+// Marca la reserva como cancelada y la saca de la espera.
 void Reserva::cancelar() {
   estado = EstadoReserva::Cancelada;
   ordenEspera = 0;
@@ -81,6 +91,7 @@ int numeroEn(const std::string &texto, int desde, int hasta) {
 
 }  // namespace
 
+// Valida que la fecha tenga formato AAAA-MM-DD y exista en el calendario.
 bool fechaValida(const std::string &fecha) {
   if (fecha.size() != 10 || fecha[4] != '-' || fecha[7] != '-') return false;
   int anio = numeroEn(fecha, 0, 4);
@@ -93,6 +104,7 @@ bool fechaValida(const std::string &fecha) {
   return dia <= maximo;
 }
 
+// Valida que el turno tenga formato HH:MM con hora y minutos reales.
 bool turnoValido(const std::string &turno) {
   if (turno.size() != 5 || turno[2] != ':') return false;
   int horas = numeroEn(turno, 0, 2);
@@ -100,6 +112,7 @@ bool turnoValido(const std::string &turno) {
   return horas >= 0 && horas < 24 && minutos >= 0 && minutos < 60;
 }
 
+// Valida que el codigo de reserva sea una R seguida de digitos.
 bool codigoReservaValido(const std::string &codigo) {
   if (codigo.size() < 2 || codigo[0] != 'R') return false;
   for (std::size_t i = 1; i < codigo.size(); ++i) {
@@ -108,6 +121,7 @@ bool codigoReservaValido(const std::string &codigo) {
   return true;
 }
 
+// Convierte un texto en entero y rechaza si sobra algun caracter.
 bool leerEntero(const std::string &texto, int &numero) {
   std::stringstream lector(texto);
   char sobrante;

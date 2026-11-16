@@ -80,10 +80,12 @@ mostrar_menu :-
     writeln('0. Volver al menu de C++').
 
 % 4.3.2 regla de conexion directa. responsable: jefferson sanchez.
+% ejecuta la regla de conexion directa entre dos puntos.
 ejecutar_opcion("1") :-
     ejecutar_conexion,
     menu_principal.
 % 4.3.3 regla de alcanzabilidad. responsable: jefferson sanchez.
+% ejecuta la regla de alcanzabilidad entre dos puntos.
 ejecutar_opcion("2") :-
     ejecutar_alcanzabilidad,
     menu_principal.
@@ -93,6 +95,7 @@ ejecutar_opcion("3") :-
     ejecutar_ruta_evitando,
     menu_principal.
 % 4.3.5 regla de atencion de solicitudes. responsable: melissa ruiz.
+% ejecuta la regla de atencion de solicitudes.
 ejecutar_opcion("4") :-
     ejecutar_atencion,
     menu_principal.

@@ -19,6 +19,7 @@ using namespace std;
 
 class SistemaTurismo {
 public:
+  // guarda la carpeta de datos y prepara el gestor de archivos csv.
   SistemaTurismo(const string &carpetaDatos)
       : carpetaDatos(carpetaDatos), archivosCSV(carpetaDatos) {}
 

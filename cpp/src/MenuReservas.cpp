@@ -17,6 +17,7 @@ using namespace std;
 // mayusculas no choque con la de GestionEstados.cpp al enlazar.
 namespace {
 
+// Convierte un texto a mayusculas.
 string mayusculas(string texto) {
   for (char &letra : texto) {
     letra = static_cast<char>(toupper(static_cast<unsigned char>(letra)));
@@ -24,6 +25,7 @@ string mayusculas(string texto) {
   return texto;
 }
 
+// Describe los cupos libres con singular o plural.
 string cuposLibres(int libres) {
   return libres == 1 ? "1 cupo libre" : to_string(libres) + " cupos libres";
 }
@@ -43,25 +45,30 @@ bool MenuReservas::pedir(const string &mensaje, string &respuesta) const {
   return false;
 }
 
+// Pide un codigo no vacio y lo convierte a mayusculas.
 bool MenuReservas::pedirCodigo(const string &mensaje, string &codigo) const {
   if (!pedir(mensaje, codigo)) return false;
   codigo = mayusculas(codigo);
   return !codigo.empty();
 }
 
+// Devuelve la posicion del punto con ese codigo, o -1 si no existe.
 int MenuReservas::buscarPunto(const string &codigo) const {
   return indicePunto(puntos, codigo);
 }
 
+// Devuelve la posicion de la solicitud con ese codigo, o -1 si no existe.
 int MenuReservas::buscarSolicitud(const string &codigo) const {
   return indiceSolicitud(solicitudes, codigo);
 }
 
+// Devuelve el codigo del punto seguido de su nombre, si existe.
 string MenuReservas::nombrePunto(const string &codigo) const {
   int i = buscarPunto(codigo);
   return i == -1 ? codigo : codigo + " " + puntos[i].getNombre();
 }
 
+// Devuelve las personas de la reserva con ese codigo, o 0 si no existe.
 int MenuReservas::personasDe(const string &codigoReserva) const {
   for (const Reserva &reserva : agenda.getReservas()) {
     if (reserva.getCodigo() == codigoReserva) return reserva.getPersonas();
@@ -101,6 +108,7 @@ AgendaCupos MenuReservas::cargarAgenda() {
   return carga.agenda;
 }
 
+// Indica si FA03 permite cambios y avisa si esta en solo lectura.
 bool MenuReservas::puedeModificar() const {
   if (!soloLectura) return true;
   cout << "[ERROR] FA03 esta en solo lectura por el problema que ya informo. "
@@ -143,6 +151,7 @@ string MenuReservas::turnosConCapacidad(const string &punto) const {
   return turnos;
 }
 
+// Avisa las reservas que pasan de la espera a confirmada.
 void MenuReservas::mostrarPromovidas(const vector<string> &promovidas) const {
   for (const string &codigo : promovidas) {
     cout << "[OK] La reserva " << codigo << " pasa de la espera a confirmada ("
@@ -359,6 +368,7 @@ void MenuReservas::reporteOcupacion() const {
 }
 
 // La agenda se inicializa al final porque cargarAgenda usa puntos y solicitudes.
+// Toma puntos y solicitudes de los datos cargados y arma la agenda de FA03.
 MenuReservas::MenuReservas(const ArchivosCSV &datos)
     : archivosCSV(datos), puntos(datos.getPuntos()),
       solicitudes(datos.getSolicitudes()), soloLectura(false),
