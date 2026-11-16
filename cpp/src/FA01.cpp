@@ -141,13 +141,12 @@ private:
     if (!archivo)
       return false;
     archivo << encabezado << "\n";
-    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i)
       archivo << filas[i] << "\n";
-    }
-    return true;
+    archivo.close();
+    return !archivo.fail();
   }
-
-  void reemplazarRelaciones(const string &nombre, const string &encabezado,
+  bool reemplazarRelaciones(const string &nombre, const string &encabezado,
                             const string &codigo,
                             const vector<string> &valores) const {
     vector<string> filas;
@@ -155,31 +154,34 @@ private:
     vector<string> nuevasFilas;
     for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
       vector<string> campos = separarCampos(filas[i]);
-      if (campos.size() > 0 && campos[0] != codigo) {
+      if (campos.size() > 0 && campos[0] != codigo)
         nuevasFilas.push_back(filas[i]);
-      }
     }
-    for (int i = 0; i < static_cast<int>(valores.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(valores.size()); ++i)
       nuevasFilas.push_back(codigo + "," + valores[i]);
-    }
+
     ofstream archivo(rutaArchivo(nombre).c_str());
     if (!archivo)
-      return;
+      return false;
     archivo << encabezado << "\n";
-    for (int i = 0; i < static_cast<int>(nuevasFilas.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(nuevasFilas.size()); ++i)
       archivo << nuevasFilas[i] << "\n";
-    }
+    archivo.close();
+    return !archivo.fail();
   }
-
   string leerSiNo(const string &pregunta) const {
+    cout << pregunta << "\n"
+         << "  1. Si\n"
+         << "  2. No\n";
     while (true) {
-      string respuesta = minusculas(leerTexto(pregunta + " (si/no): "));
-      if (respuesta == "si" || respuesta == "no")
-        return respuesta;
-      cout << "Escribe si o no.\n";
+      string respuesta = minusculas(leerTexto("Selecciona 1 o 2: "));
+      if (respuesta == "1" || respuesta == "si")
+        return "si";
+      if (respuesta == "2" || respuesta == "no")
+        return "no";
+      cout << "Elige 1 (Si) o 2 (No).\n";
     }
   }
-
   bool horaValida(const string &hora) const {
     if (hora.size() != 5 || hora[2] != ':')
       return false;
@@ -192,49 +194,278 @@ private:
     return horas < 24 && minutos < 60;
   }
 
-  void registrarPerfil() {
-    string codigo = mayusculas(leerTexto("Codigo del perfil: "));
-    if (existeCodigo("perfiles_turista.csv", codigo)) {
-      cout << "Ese perfil ya existe.\n";
+  bool contiene(const vector<string> &valores, const string &buscado) const {
+    for (int i = 0; i < static_cast<int>(valores.size()); ++i) {
+      if (valores[i] == buscado)
+        return true;
+    }
+    return false;
+  }
+
+  string textoLista(const vector<string> &valores) const {
+    if (valores.empty())
+      return "ninguno";
+    string texto;
+    for (int i = 0; i < static_cast<int>(valores.size()); ++i) {
+      if (i > 0)
+        texto += ", ";
+      texto += valores[i];
+    }
+    return texto;
+  }
+
+  vector<string> obtenerCategorias() const {
+    vector<string> filas;
+    vector<string> categorias;
+    leerFilas("categorias_puntos.csv", filas);
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+      vector<string> campos = separarCampos(filas[i]);
+      if (campos.size() > 1) {
+        string categoria = minusculas(limpiarEspacios(campos[1]));
+        if (categoria != "" && !contiene(categorias, categoria))
+          categorias.push_back(categoria);
+      }
+    }
+    return categorias;
+  }
+
+  vector<string> obtenerInteresesDisponibles() const {
+    vector<string> intereses = obtenerCategorias();
+    vector<string> filas;
+    leerFilas("intereses_turista.csv", filas);
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+      vector<string> campos = separarCampos(filas[i]);
+      if (campos.size() > 1) {
+        string interes = minusculas(limpiarEspacios(campos[1]));
+        if (interes != "" && !contiene(intereses, interes))
+          intereses.push_back(interes);
+      }
+    }
+    return intereses;
+  }
+
+  void mostrarValores(const string &titulo,
+                     const vector<string> &valores) const {
+    cout << titulo << "\n";
+    if (valores.empty()) {
+      cout << "  No hay valores registrados.\n";
       return;
     }
-    string movilidad = leerSiNo("Movilidad reducida");
-    string ninos = leerSiNo("Viaja con ninos");
-    string hora = leerTexto("Hora de visita (HH:MM): ");
-    if (codigo == "" || !horaValida(hora)) {
-      cout << "El codigo y una hora valida son obligatorios.\n";
+    for (int i = 0; i < static_cast<int>(valores.size()); ++i)
+      cout << "  - " << valores[i] << "\n";
+  }
+
+  void mostrarPerfilesRegistrados() const {
+    vector<string> perfiles;
+    vector<string> relaciones;
+    leerFilas("perfiles_turista.csv", perfiles);
+    leerFilas("intereses_turista.csv", relaciones);
+    cout << "\nPerfiles registrados (codigo | movilidad | ninos | hora | intereses):\n";
+    if (perfiles.empty()) {
+      cout << "  Aun no hay perfiles registrados.\n";
       return;
     }
-    string fila = codigo + "," + movilidad + "," + ninos + "," + hora;
-    if (guardarFila("perfiles_turista.csv",
-                    "codigo,movilidad_reducida,viaja_con_ninos,hora_visita",
-                    codigo, fila)) {
-      string intereses = leerTexto("Intereses separados por punto y coma: ");
-      vector<string> lista = separarLista(intereses);
-      reemplazarRelaciones("intereses_turista.csv", "codigo,interes", codigo,
-                           lista);
-      cout << "Perfil e intereses guardados.\n";
-    } else {
-      cout << "No se pudo guardar el perfil.\n";
+    for (int i = 0; i < static_cast<int>(perfiles.size()); ++i) {
+      vector<string> campos = separarCampos(perfiles[i]);
+      if (campos.size() >= 4) {
+        vector<string> intereses;
+        for (int j = 0; j < static_cast<int>(relaciones.size()); ++j) {
+          vector<string> datosInteres = separarCampos(relaciones[j]);
+          if (datosInteres.size() > 1 && datosInteres[0] == campos[0])
+            intereses.push_back(datosInteres[1]);
+        }
+        cout << "  " << campos[0] << " | movilidad: " << campos[1]
+             << " | ninos: " << campos[2] << " | hora: " << campos[3]
+             << " | intereses: " << textoLista(intereses) << "\n";
+      }
     }
   }
 
+  string generarCodigoPerfil() const {
+    vector<string> filas;
+    leerFilas("perfiles_turista.csv", filas);
+    int mayorNumero = 0;
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+      vector<string> campos = separarCampos(filas[i]);
+      if (campos.size() > 0 && campos[0].size() > 1 &&
+          campos[0][0] == 'T') {
+        int numero = 0;
+        bool valido = true;
+        for (int j = 1; j < static_cast<int>(campos[0].size()); ++j) {
+          if (!isdigit(static_cast<unsigned char>(campos[0][j]))) {
+            valido = false;
+            break;
+          }
+          numero = numero * 10 + (campos[0][j] - '0');
+        }
+        if (valido && numero > mayorNumero)
+          mayorNumero = numero;
+      }
+    }
+
+    string codigo;
+    do {
+      mayorNumero++;
+      string numero = to_string(mayorNumero);
+      codigo = "T";
+      for (int i = static_cast<int>(numero.size()); i < 3; ++i)
+        codigo += "0";
+      codigo += numero;
+    } while (existeCodigo("perfiles_turista.csv", codigo));
+    return codigo;
+  }
+
+  string leerCodigoExistente(const string &archivo,
+                             const string &mensaje) const {
+    while (true) {
+      string codigo = mayusculas(leerTexto(mensaje));
+      if (codigo == "0")
+        return "";
+      if (existeCodigo(archivo, codigo))
+        return codigo;
+      cout << "Ese codigo no existe. Elige uno de la lista o escribe 0 para cancelar.\n";
+    }
+  }
+
+  string leerHoraValida(const string &mensaje) const {
+    while (true) {
+      string hora = leerTexto(mensaje);
+      if (hora == "")
+        return "";
+      if (horaValida(hora))
+        return hora;
+      cout << "Hora invalida. Usa el formato HH:MM, por ejemplo 18:30.\n";
+    }
+  }
+
+  void mostrarPuntosRegistrados() const {
+    vector<string> filas;
+    leerFilas("puntos.csv", filas);
+    cout << "\nPuntos registrados (codigo | nombre | tipo | zona):\n";
+    if (filas.empty()) {
+      cout << "  No hay puntos registrados.\n";
+      return;
+    }
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+      vector<string> campos = separarCampos(filas[i]);
+      if (campos.size() >= 4)
+        cout << "  " << campos[0] << " | " << campos[1] << " | "
+             << campos[2] << " | " << campos[3] << "\n";
+    }
+  }
+
+  void mostrarConexionesRegistradas() const {
+    vector<string> filas;
+    leerFilas("conexiones.csv", filas);
+    cout << "\nConexiones registradas (codigo | origen -> destino | estado):\n";
+    if (filas.empty()) {
+      cout << "  No hay conexiones registradas.\n";
+      return;
+    }
+    for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
+      vector<string> campos = separarCampos(filas[i]);
+      if (campos.size() >= 6)
+        cout << "  " << campos[0] << " | " << campos[1] << " -> "
+             << campos[2] << " | " << campos[5] << "\n";
+    }
+  }
+
+  void mostrarCategorias(const vector<string> &categorias) const {
+    mostrarValores("Categorias conocidas (puedes agregar otra):", categorias);
+  }
+
+  void mostrarIntereses(const vector<string> &intereses) const {
+    mostrarValores("Intereses sugeridos (puedes agregar otro):", intereses);
+  }
+  void registrarPerfil() {
+    mostrarPerfilesRegistrados();
+    string codigo = generarCodigoPerfil();
+    cout << "\nCodigo asignado automaticamente: " << codigo << "\n";
+
+    string movilidad = leerSiNo("Perfil: movilidad reducida?");
+    string ninos = leerSiNo("Perfil: viaja con ninos?");
+    string hora = leerHoraValida("Hora de visita (ejemplo 18:30): ");
+    if (hora == "") {
+      cout << "Registro cancelado.\n";
+      return;
+    }
+
+    vector<string> interesesDisponibles = obtenerInteresesDisponibles();
+    mostrarIntereses(interesesDisponibles);
+    cout << "Escribe varios intereses separados por punto y coma.\n";
+    cout << "Deja el campo vacio si no deseas agregar intereses.\n";
+    vector<string> intereses =
+        separarLista(leerTexto("Intereses del perfil: "));
+
+    cout << "\n=== Resumen del perfil ===\n"
+         << "Codigo: " << codigo << "\n"
+         << "Movilidad reducida: " << movilidad << "\n"
+         << "Viaja con ninos: " << ninos << "\n"
+         << "Hora de visita: " << hora << "\n"
+         << "Intereses: " << textoLista(intereses) << "\n";
+    if (leerSiNo("Guardar este perfil?") != "si") {
+      cout << "Registro cancelado.\n";
+      return;
+    }
+
+    string fila = codigo + "," + movilidad + "," + ninos + "," + hora;
+    if (!guardarFila("perfiles_turista.csv",
+                     "codigo,movilidad_reducida,viaja_con_ninos,hora_visita",
+                     codigo, fila)) {
+      cout << "No se pudo guardar el perfil.\n";
+      return;
+    }
+    if (reemplazarRelaciones("intereses_turista.csv", "codigo,interes",
+                             codigo, intereses)) {
+      cout << "Perfil e intereses guardados correctamente.\n";
+    } else {
+      cout << "El perfil se guardo, pero no se pudieron guardar sus intereses.\n";
+    }
+  }
   void registrarCaracteristicasPunto() {
-    string codigo = mayusculas(leerTexto("Codigo de un punto existente: "));
-    if (!existeCodigo("puntos.csv", codigo)) {
-      cout << "No existe ese punto.\n";
+    mostrarPuntosRegistrados();
+    string codigo = leerCodigoExistente(
+        "puntos.csv", "Codigo del punto (0 para volver): ");
+    if (codigo == "")
+      return;
+
+    bool actualizar = existeCodigo("caracteristicas_puntos.csv", codigo);
+    if (actualizar)
+      cout << "Este punto ya tiene caracteristicas; se actualizaran.\n";
+
+    string movilidad = leerSiNo("Punto: accesible para movilidad reducida?");
+    string ninos = leerSiNo("Punto: adecuado para ninos?");
+    string seguroDia = leerSiNo("Punto: seguro durante el dia?");
+    string seguroNoche = leerSiNo("Punto: seguro durante la noche?");
+    string inicio = leerHoraValida("Hora de apertura (ejemplo 09:00): ");
+    if (inicio == "") {
+      cout << "Registro cancelado.\n";
       return;
     }
-    string movilidad = leerSiNo("Accesible para movilidad reducida");
-    string ninos = leerSiNo("Adecuado para ninos");
-    string seguroDia = leerSiNo("Seguro durante el dia");
-    string seguroNoche = leerSiNo("Seguro durante la noche");
-    string inicio = leerTexto("Hora de apertura (HH:MM): ");
-    string fin = leerTexto("Hora de cierre (HH:MM): ");
-    if (!horaValida(inicio) || !horaValida(fin)) {
-      cout << "Ingresa horarios validos en formato HH:MM.\n";
+    string fin = leerHoraValida("Hora de cierre (ejemplo 18:30): ");
+    if (fin == "") {
+      cout << "Registro cancelado.\n";
       return;
     }
+
+    vector<string> categoriasDisponibles = obtenerCategorias();
+    mostrarCategorias(categoriasDisponibles);
+    cout << "Separa varias categorias con punto y coma.\n";
+    vector<string> categorias =
+        separarLista(leerTexto("Categorias del punto: "));
+
+    cout << "\n=== Resumen del punto " << codigo << " ===\n"
+         << "Movilidad reducida: " << movilidad << "\n"
+         << "Adecuado para ninos: " << ninos << "\n"
+         << "Seguro de dia: " << seguroDia << "\n"
+         << "Seguro de noche: " << seguroNoche << "\n"
+         << "Horario: " << inicio << " a " << fin << "\n"
+         << "Categorias: " << textoLista(categorias) << "\n";
+    if (leerSiNo("Guardar estos datos?") != "si") {
+      cout << "Registro cancelado.\n";
+      return;
+    }
+
     string fila = codigo + "," + movilidad + "," + ninos + "," + seguroDia +
                   "," + seguroNoche + "," + inicio + "," + fin;
     if (!guardarFila("caracteristicas_puntos.csv",
@@ -244,38 +475,51 @@ private:
       cout << "No se pudieron guardar las caracteristicas.\n";
       return;
     }
-    string categorias = leerTexto("Categorias separadas por punto y coma: ");
-    vector<string> lista = separarLista(categorias);
-    reemplazarRelaciones("categorias_puntos.csv", "codigo,categoria", codigo,
-                         lista);
-    cout << "Caracteristicas y categorias guardadas.\n";
+    if (reemplazarRelaciones("categorias_puntos.csv", "codigo,categoria",
+                             codigo, categorias)) {
+      cout << "Caracteristicas y categorias guardadas correctamente.\n";
+    } else {
+      cout << "Las caracteristicas se guardaron, pero no se pudieron guardar las categorias.\n";
+    }
   }
-
   void registrarAccesibilidadConexion() {
-    string codigo = mayusculas(leerTexto("Codigo de una conexion existente: "));
-    if (!existeCodigo("conexiones.csv", codigo)) {
-      cout << "No existe esa conexion.\n";
+    mostrarConexionesRegistradas();
+    string codigo = leerCodigoExistente(
+        "conexiones.csv", "Codigo de conexion (0 para volver): ");
+    if (codigo == "")
+      return;
+
+    bool actualizar = existeCodigo("accesibilidad_conexiones.csv", codigo);
+    if (actualizar)
+      cout << "Ya hay accesibilidad registrada; se actualizara.\n";
+
+    string accesible = leerSiNo(
+        "Conexion: accesible para movilidad reducida?");
+    cout << "\n=== Resumen de accesibilidad ===\n"
+         << "Conexion: " << codigo << "\n"
+         << "Accesible para movilidad reducida: " << accesible << "\n";
+    if (leerSiNo("Guardar estos datos?") != "si") {
+      cout << "Registro cancelado.\n";
       return;
     }
-    string accesible = leerSiNo("Accesible para movilidad reducida");
+
     string fila = codigo + "," + accesible;
     if (guardarFila("accesibilidad_conexiones.csv",
                     "codigo,accesible_movilidad", codigo, fila)) {
-      cout << "Accesibilidad de la conexion guardada.\n";
+      cout << "Accesibilidad de la conexion guardada correctamente.\n";
     } else {
       cout << "No se pudo guardar la accesibilidad.\n";
     }
   }
-
 public:
   explicit RegistroFA01(const string &rutaDatos) : carpetaDatos(rutaDatos) {}
 
   void ejecutar() {
     while (true) {
       cout << "\n=== Datos para el recomendador FA01 ===\n"
-           << "1. Registrar perfil e intereses\n"
-           << "2. Registrar caracteristicas y categorias de un punto\n"
-           << "3. Registrar accesibilidad de una conexion\n"
+           << "1. Crear perfil turistico e intereses\n"
+           << "2. Configurar caracteristicas y categorias de un punto\n"
+           << "3. Configurar accesibilidad de una conexion\n"
            << "0. Volver\n";
       string opcion = leerTexto("Opcion: ");
       if (opcion == "1")
