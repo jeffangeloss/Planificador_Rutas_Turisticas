@@ -1,13 +1,6 @@
 % 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
-:- module(lectura_csv, [
-    cargar_datos/1,
-    cargar_datos/2,
-    limpiar_datos/0,
-    punto/4,
-    conexion/6,
-    unidad/5,
-    solicitud/7
-]).
+:- module(lectura_csv, [cargar_datos/1, cargar_datos/2, limpiar_datos/0,
+    punto/4, conexion/6, unidad/5, solicitud/7]).
 
 :- use_module(library(csv)).
 :- use_module(library(aggregate)).
@@ -18,9 +11,11 @@
 :- dynamic unidad/5.
 :- dynamic solicitud/7.
 
+% Carga los datos sin devolver el resumen de registros.
 cargar_datos(CarpetaDatos) :-
     cargar_datos(CarpetaDatos, _).
 
+% Valida, reemplaza los hechos y devuelve las cantidades cargadas.
 cargar_datos(CarpetaDatos, Resumen) :-
     validar_archivos(CarpetaDatos),
     limpiar_datos,
@@ -30,23 +25,22 @@ cargar_datos(CarpetaDatos, Resumen) :-
     cargar_solicitudes(CarpetaDatos),
     contar_datos(Resumen).
 
+% Cuenta los hechos creados desde cada archivo base.
 contar_datos(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
     aggregate_all(count, punto(_, _, _, _), Puntos),
     aggregate_all(count, conexion(_, _, _, _, _, _), Conexiones),
     aggregate_all(count, unidad(_, _, _, _, _), Unidades),
     aggregate_all(count, solicitud(_, _, _, _, _, _, _), Solicitudes).
 
+% Comprueba que la carpeta y los cuatro CSV requeridos existan.
 validar_archivos(CarpetaDatos) :-
     (   exists_directory(CarpetaDatos)
-    ->  validar_archivos_requeridos(CarpetaDatos, [
-            'puntos.csv',
-            'conexiones.csv',
-            'unidades.csv',
-            'solicitudes.csv'
-        ])
+    ->  validar_archivos_requeridos(CarpetaDatos,
+            ['puntos.csv', 'conexiones.csv', 'unidades.csv', 'solicitudes.csv'])
     ;   throw(error(existence_error(directory, CarpetaDatos), cargar_datos/2))
     ).
 
+% Recorre la lista de archivos y reporta el primero que falte.
 validar_archivos_requeridos(_, []).
 validar_archivos_requeridos(CarpetaDatos, [Archivo|Resto]) :-
     directory_file_path(CarpetaDatos, Archivo, Ruta),
@@ -60,11 +54,8 @@ leer_filas(CarpetaDatos, NombreArchivo, Filas) :-
     directory_file_path(CarpetaDatos, NombreArchivo, RutaArchivo),
     setup_call_cleanup(
         open(RutaArchivo, read, Archivo, [encoding(utf8)]),
-        csv_read_stream(
-            Archivo,
-            [_Encabezado|Filas],
-            [functor(fila), strip(true), convert(true)]
-        ),
+        csv_read_stream(Archivo, [_Encabezado|Filas],
+            [functor(fila), strip(true), convert(true)]),
         close(Archivo)
     ).
 
@@ -94,10 +85,9 @@ cargar_solicitudes(CarpetaDatos) :-
     maplist(guardar_solicitud, Filas).
 
 guardar_solicitud(fila(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada)) :-
-    assertz(solicitud(
-        Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada
-    )).
+    assertz(solicitud(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada)).
 
+% Elimina los hechos anteriores antes de una nueva carga.
 limpiar_datos :-
     retractall(punto(_, _, _, _)),
     retractall(conexion(_, _, _, _, _, _)),
