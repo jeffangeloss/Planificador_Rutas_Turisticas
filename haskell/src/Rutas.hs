@@ -9,16 +9,12 @@ buscarRutas :: String -> String -> [Conexion] -> [String] -> [[String]]
 buscarRutas actual destino conexiones visitados
   | actual == destino = [reverse visitados]
   | otherwise =
-      [ ruta
-      | vecino <- vecinos actual conexiones
-      , not (elem vecino visitados)
-      , ruta <- buscarRutas vecino destino conexiones (vecino : visitados)
-      ]
+      [ruta | vecino <- vecinos actual conexiones, not (elem vecino visitados),
+              ruta <- buscarRutas vecino destino conexiones (vecino : visitados)]
 
 -- Inicia la búsqueda recursiva desde el punto de origen.
 rutasPosibles :: String -> String -> [Conexion] -> [[String]]
-rutasPosibles origen destino conexiones =
-  buscarRutas origen destino conexiones [origen]
+rutasPosibles origen destino conexiones = buscarRutas origen destino conexiones [origen]
 
 -- Imprime las rutas encontradas una por una.
 mostrarRutas :: [[String]] -> IO ()

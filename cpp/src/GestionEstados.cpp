@@ -19,8 +19,7 @@ namespace {
 // Convierte los códigos ingresados a mayúsculas.
 string mayusculas(string texto) {
   for (int i = 0; i < static_cast<int>(texto.size()); ++i) {
-    texto[i] = static_cast<char>(
-        toupper(static_cast<unsigned char>(texto[i])));
+    texto[i] = static_cast<char>(toupper(static_cast<unsigned char>(texto[i])));
   }
   return texto;
 }
@@ -38,8 +37,7 @@ bool leerCodigo(const string &mensaje, string &codigo) {
   cout << mensaje;
   if (!getline(cin, codigo)) return false;
   codigo = mayusculas(codigo);
-  if (codigo == "" || soloEspacios(codigo)
-      || codigo.find(',') != string::npos) {
+  if (codigo == "" || soloEspacios(codigo) || codigo.find(',') != string::npos) {
     cout << "[ERROR] Ingresa un codigo valido." << endl;
     return false;
   }
@@ -63,8 +61,7 @@ int buscarUnidad(const vector<Unidad> &unidades, const string &codigo) {
 }
 
 // Busca una solicitud por su código.
-int buscarSolicitud(const vector<Solicitud> &solicitudes,
-                    const string &codigo) {
+int buscarSolicitud(const vector<Solicitud> &solicitudes, const string &codigo) {
   for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
     if (solicitudes[i].getCodigo() == codigo) return i;
   }
@@ -104,12 +101,10 @@ void cambiarEstadoConexion(ArchivosCSV &archivosCSV) {
 }
 
 // Reúne las unidades disponibles que tienen capacidad suficiente.
-vector<int> unidadesCompatibles(const vector<Unidad> &unidades,
-                                int cantidadTuristas) {
+vector<int> unidadesCompatibles(const vector<Unidad> &unidades, int cantidadTuristas) {
   vector<int> posiciones;
   for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
-    if (unidades[i].estaDisponible()
-        && unidades[i].tieneCapacidad(cantidadTuristas)) {
+    if (unidades[i].estaDisponible() && unidades[i].tieneCapacidad(cantidadTuristas)) {
       posiciones.push_back(i);
     }
   }
@@ -118,16 +113,13 @@ vector<int> unidadesCompatibles(const vector<Unidad> &unidades,
 
 // Muestra las unidades que pueden atender la solicitud.
 void mostrarUnidadesCompatibles(const ArchivosCSV &archivosCSV,
-                                const vector<Unidad> &unidades,
-                                const vector<int> &posiciones) {
+                                const vector<Unidad> &unidades, const vector<int> &posiciones) {
   cout << endl << "Unidades compatibles:" << endl;
   cout << fixed << setprecision(2);
   for (int i = 0; i < static_cast<int>(posiciones.size()); ++i) {
     const Unidad &unidad = unidades[posiciones[i]];
-    cout << unidad.getCodigo() << " | "
-         << archivosCSV.textoTipoUnidad(unidad.getTipo())
-         << " | capacidad: " << unidad.getCapacidad()
-         << " | costo/km: " << unidad.getCostoKm() << endl;
+    cout << unidad.getCodigo() << " | " << archivosCSV.textoTipoUnidad(unidad.getTipo())
+         << " | capacidad: " << unidad.getCapacidad() << " | costo/km: " << unidad.getCostoKm() << endl;
   }
 }
 
@@ -155,11 +147,9 @@ void asignarSolicitud(ArchivosCSV &archivosCSV) {
     return;
   }
 
-  vector<int> compatibles = unidadesCompatibles(
-      unidades, solicitudes[posicionSolicitud].getCantidadTuristas());
+  vector<int> compatibles = unidadesCompatibles(unidades, solicitudes[posicionSolicitud].getCantidadTuristas());
   if (compatibles.empty()) {
-    cout << "[ERROR] No hay unidades disponibles con capacidad suficiente."
-         << endl;
+    cout << "[ERROR] No hay unidades disponibles con capacidad suficiente." << endl;
     return;
   }
   mostrarUnidadesCompatibles(archivosCSV, unidades, compatibles);
@@ -193,8 +183,7 @@ void entregarSolicitud(ArchivosCSV &archivosCSV) {
     cout << "[ERROR] No existe esa solicitud." << endl;
     return;
   }
-  if (solicitudes[posicionSolicitud].getEstado()
-      != EstadoSolicitud::Asignada) {
+  if (solicitudes[posicionSolicitud].getEstado() != EstadoSolicitud::Asignada) {
     cout << "[ERROR] La solicitud no esta asignada." << endl;
     return;
   }
@@ -210,8 +199,7 @@ void entregarSolicitud(ArchivosCSV &archivosCSV) {
   unidades[posicionUnidad].liberar();
   if (archivosCSV.guardarUnidadesYSolicitudes(unidades, solicitudes)) {
     archivosCSV.actualizarDatos();
-    cout << "[OK] Solicitud entregada y unidad " << codigoUnidad
-         << " liberada." << endl;
+    cout << "[OK] Solicitud entregada y unidad " << codigoUnidad << " liberada." << endl;
   } else {
     cout << "[ERROR] No se pudo guardar la entrega." << endl;
   }

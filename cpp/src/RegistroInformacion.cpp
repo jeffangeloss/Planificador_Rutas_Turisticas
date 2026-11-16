@@ -21,8 +21,7 @@ namespace {
 // Convierte los códigos ingresados a mayúsculas.
 string mayusculas(string texto) {
   for (int i = 0; i < static_cast<int>(texto.size()); ++i) {
-    texto[i] = static_cast<char>(
-        toupper(static_cast<unsigned char>(texto[i])));
+    texto[i] = static_cast<char>(toupper(static_cast<unsigned char>(texto[i])));
   }
   return texto;
 }
@@ -39,10 +38,8 @@ bool soloEspacios(const string &texto) {
 bool leerTexto(const string &mensaje, string &texto) {
   cout << mensaje;
   if (!getline(cin, texto)) return false;
-  if (texto == "" || soloEspacios(texto)
-      || texto.find(',') != string::npos) {
-    cout << "[ERROR] El dato es obligatorio y no puede contener comas."
-         << endl;
+  if (texto == "" || soloEspacios(texto) || texto.find(',') != string::npos) {
+    cout << "[ERROR] El dato es obligatorio y no puede contener comas." << endl;
     return false;
   }
   return true;
@@ -53,8 +50,7 @@ bool leerCodigo(const string &mensaje, char prefijo, string &codigo) {
   if (!leerTexto(mensaje, codigo)) return false;
   codigo = mayusculas(codigo);
   if (codigo.size() < 2 || codigo[0] != prefijo) {
-    cout << "[ERROR] El codigo debe comenzar con " << prefijo << "."
-         << endl;
+    cout << "[ERROR] El codigo debe comenzar con " << prefijo << "." << endl;
     return false;
   }
   return true;
@@ -208,14 +204,12 @@ void registrarPunto(ArchivosCSV &archivosCSV) {
   string zona;
   TipoPunto tipo;
   string sugerido = siguienteCodigo(archivosCSV, 'P');
-  if (!leerCodigo("Codigo del punto (sugerido: " + sugerido + "): ", 'P',
-                  codigo)) return;
+  if (!leerCodigo("Codigo del punto (sugerido: " + sugerido + "): ", 'P', codigo)) return;
   if (archivosCSV.existePunto(codigo)) {
     cout << "[ERROR] Ya existe un punto con ese codigo." << endl;
     return;
   }
-  if (!leerTexto("Nombre: ", nombre) || !leerTipoPunto(tipo)
-      || !leerTexto("Zona: ", zona)) return;
+  if (!leerTexto("Nombre: ", nombre) || !leerTipoPunto(tipo) || !leerTexto("Zona: ", zona)) return;
 
   Punto punto{codigo, nombre, tipo, zona};
   if (archivosCSV.agregarPunto(punto)) {
@@ -235,26 +229,21 @@ void registrarConexion(ArchivosCSV &archivosCSV) {
   int tiempo;
   EstadoConexion estado;
   string sugerido = siguienteCodigo(archivosCSV, 'C');
-  if (!leerCodigo("Codigo de la conexion (sugerido: " + sugerido + "): ",
-                  'C', codigo)) return;
+  if (!leerCodigo("Codigo de la conexion (sugerido: " + sugerido + "): ", 'C', codigo)) return;
   if (archivosCSV.existeConexion(codigo)) {
     cout << "[ERROR] Ya existe una conexion con ese codigo." << endl;
     return;
   }
-  if (!leerCodigo("Codigo de origen: ", 'P', origen)
-      || !leerCodigo("Codigo de destino: ", 'P', destino)) return;
-  if (!archivosCSV.existePunto(origen)
-      || !archivosCSV.existePunto(destino)) {
-    cout << "[ERROR] El origen y el destino deben ser puntos existentes."
-         << endl;
+  if (!leerCodigo("Codigo de origen: ", 'P', origen) || !leerCodigo("Codigo de destino: ", 'P', destino)) return;
+  if (!archivosCSV.existePunto(origen) || !archivosCSV.existePunto(destino)) {
+    cout << "[ERROR] El origen y el destino deben ser puntos existentes." << endl;
     return;
   }
   if (origen == destino) {
     cout << "[ERROR] El origen y el destino deben ser diferentes." << endl;
     return;
   }
-  if (!leerDecimalPositivo("Distancia en km: ", distancia)
-      || !leerEnteroPositivo("Tiempo en minutos: ", tiempo)
+  if (!leerDecimalPositivo("Distancia en km: ", distancia) || !leerEnteroPositivo("Tiempo en minutos: ", tiempo)
       || !leerEstadoConexion(estado)) return;
 
   Conexion conexion{codigo, origen, destino, distancia, tiempo, estado};
@@ -273,14 +262,12 @@ void registrarUnidad(ArchivosCSV &archivosCSV) {
   int capacidad;
   double costoKm;
   string sugerido = siguienteCodigo(archivosCSV, 'U');
-  if (!leerCodigo("Codigo de la unidad (sugerido: " + sugerido + "): ", 'U',
-                  codigo)) return;
+  if (!leerCodigo("Codigo de la unidad (sugerido: " + sugerido + "): ", 'U', codigo)) return;
   if (archivosCSV.existeUnidad(codigo)) {
     cout << "[ERROR] Ya existe una unidad con ese codigo." << endl;
     return;
   }
-  if (!leerTipoUnidad(tipo)
-      || !leerEnteroPositivo("Capacidad: ", capacidad)
+  if (!leerTipoUnidad(tipo) || !leerEnteroPositivo("Capacidad: ", capacidad)
       || !leerDecimalPositivo("Costo por km: ", costoKm)) return;
 
   Unidad unidad{codigo, tipo, capacidad, costoKm, EstadoUnidad::Disponible};
@@ -300,29 +287,23 @@ void registrarSolicitud(ArchivosCSV &archivosCSV) {
   int cantidadTuristas;
   Prioridad prioridad;
   string sugerido = siguienteCodigo(archivosCSV, 'S');
-  if (!leerCodigo("Codigo de la solicitud (sugerido: " + sugerido + "): ",
-                  'S', codigo)) return;
+  if (!leerCodigo("Codigo de la solicitud (sugerido: " + sugerido + "): ", 'S', codigo)) return;
   if (archivosCSV.existeSolicitud(codigo)) {
     cout << "[ERROR] Ya existe una solicitud con ese codigo." << endl;
     return;
   }
-  if (!leerCodigo("Codigo de origen: ", 'P', origen)
-      || !leerCodigo("Codigo de destino: ", 'P', destino)) return;
-  if (!archivosCSV.existePunto(origen)
-      || !archivosCSV.existePunto(destino)) {
-    cout << "[ERROR] El origen y el destino deben ser puntos existentes."
-         << endl;
+  if (!leerCodigo("Codigo de origen: ", 'P', origen) || !leerCodigo("Codigo de destino: ", 'P', destino)) return;
+  if (!archivosCSV.existePunto(origen) || !archivosCSV.existePunto(destino)) {
+    cout << "[ERROR] El origen y el destino deben ser puntos existentes." << endl;
     return;
   }
   if (origen == destino) {
     cout << "[ERROR] El origen y el destino deben ser diferentes." << endl;
     return;
   }
-  if (!leerEnteroPositivo("Cantidad de turistas: ", cantidadTuristas)
-      || !leerPrioridad(prioridad)) return;
+  if (!leerEnteroPositivo("Cantidad de turistas: ", cantidadTuristas) || !leerPrioridad(prioridad)) return;
 
-  Solicitud solicitud{codigo, origen, destino, cantidadTuristas, prioridad,
-                      EstadoSolicitud::Pendiente, ""};
+  Solicitud solicitud{codigo, origen, destino, cantidadTuristas, prioridad, EstadoSolicitud::Pendiente, ""};
   if (archivosCSV.agregarSolicitud(solicitud)) {
     archivosCSV.actualizarDatos();
     cout << "[OK] Solicitud registrada como pendiente." << endl;

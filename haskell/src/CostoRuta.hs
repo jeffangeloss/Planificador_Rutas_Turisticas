@@ -9,33 +9,26 @@ type ResultadoRuta = (Double, Int, Bool)
 -- Comprueba si una conexión corresponde al tramo en cualquier sentido.
 esMismoTramo :: String -> String -> String -> String -> Bool
 esMismoTramo puntoA puntoB origen destino =
-  (puntoA == origen && puntoB == destino)
-    || (puntoA == destino && puntoB == origen)
+  (puntoA == origen && puntoB == destino) || (puntoA == destino && puntoB == origen)
 
 -- Busca la distancia y el tiempo de un tramo habilitado.
 buscarTramo :: String -> String -> [Conexion] -> ResultadoRuta
 buscarTramo _ _ [] = (0, 0, False)
 buscarTramo puntoA puntoB (Conexion _ origen destino distancia tiempo Habilitada : restantes)
-  | esMismoTramo puntoA puntoB origen destino =
-      (distancia, tiempo, True)
+  | esMismoTramo puntoA puntoB origen destino = (distancia, tiempo, True)
   | otherwise = buscarTramo puntoA puntoB restantes
 buscarTramo puntoA puntoB (_ : restantes) = buscarTramo puntoA puntoB restantes
 
 -- Une los resultados de dos partes de una ruta.
 sumarCostos :: ResultadoRuta -> ResultadoRuta -> ResultadoRuta
 sumarCostos (distancia, tiempo, tramoValido) (distanciaRestante, tiempoRestante, rutaValida) =
-  ( distancia + distanciaRestante
-  , tiempo + tiempoRestante
-  , tramoValido && rutaValida
-  )
+  (distancia + distanciaRestante, tiempo + tiempoRestante, tramoValido && rutaValida)
 
 -- Recorre los puntos consecutivos y acumula sus tramos.
 sumarTramos :: [String] -> [Conexion] -> ResultadoRuta
 sumarTramos [_] _ = (0, 0, True)
 sumarTramos (puntoA : puntoB : restantes) conexiones =
-  sumarCostos
-    (buscarTramo puntoA puntoB conexiones)
-    (sumarTramos (puntoB : restantes) conexiones)
+  sumarCostos (buscarTramo puntoA puntoB conexiones) (sumarTramos (puntoB : restantes) conexiones)
 sumarTramos _ _ = (0, 0, False)
 
 -- Calcula distancia, tiempo y validez de una ruta completa.
@@ -46,8 +39,7 @@ costoRuta puntos conexiones
 
 -- Muestra el resultado calculado para la ruta.
 mostrarCosto :: ResultadoRuta -> IO ()
-mostrarCosto (_, _, False) =
-  putStrLn "[>] La ruta contiene una conexion inexistente o cerrada."
+mostrarCosto (_, _, False) = putStrLn "[>] La ruta contiene una conexion inexistente o cerrada."
 mostrarCosto (distancia, tiempo, True) = do
   putStrLn ("Distancia total: " ++ show distancia ++ " km")
   putStrLn ("Tiempo total: " ++ show tiempo ++ " minutos")
@@ -68,8 +60,7 @@ seleccionarRuta opcion (ruta : restantes) numero
 
 -- Calcula la ruta elegida o informa que el número no existe.
 calcularRutaSeleccionada :: [String] -> [Conexion] -> IO ()
-calcularRutaSeleccionada [] _ =
-  putStrLn "[>] Numero de ruta no valido."
+calcularRutaSeleccionada [] _ = putStrLn "[>] Numero de ruta no valido."
 calcularRutaSeleccionada ruta conexiones = do
   putStrLn ("Ruta seleccionada: " ++ show ruta)
   mostrarCosto (costoRuta ruta conexiones)

@@ -6,24 +6,17 @@ import Tipos (Conexion (..), EstadoConexion (Habilitada))
 -- Obtiene los destinos de las conexiones que salen del punto.
 vecinosDesdeOrigen :: String -> [Conexion] -> [String]
 vecinosDesdeOrigen punto conexiones =
-  [ destino
-  | Conexion _ origen destino _ _ Habilitada <- conexiones
-  , origen == punto
-  ]
+  [destino | Conexion _ origen destino _ _ Habilitada <- conexiones, origen == punto]
 
 -- Obtiene los orígenes de las conexiones que llegan al punto.
 vecinosDesdeDestino :: String -> [Conexion] -> [String]
 vecinosDesdeDestino punto conexiones =
-  [ origen
-  | Conexion _ origen destino _ _ Habilitada <- conexiones
-  , destino == punto
-  ]
+  [origen | Conexion _ origen destino _ _ Habilitada <- conexiones, destino == punto]
 
 -- Considera ambos sentidos de cada conexión habilitada.
 vecinos :: String -> [Conexion] -> [String]
 vecinos punto conexiones =
-  vecinosDesdeOrigen punto conexiones
-    ++ vecinosDesdeDestino punto conexiones
+  vecinosDesdeOrigen punto conexiones ++ vecinosDesdeDestino punto conexiones
 
 -- Solicita un punto y muestra sus vecinos habilitados.
 ejecutarVecinos :: [Conexion] -> IO ()

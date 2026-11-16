@@ -1,13 +1,6 @@
 % 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
-:- module(lectura_csv, [
-    cargar_datos/1,
-    cargar_datos/2,
-    limpiar_datos/0,
-    punto/4,
-    conexion/6,
-    unidad/5,
-    solicitud/7
-]).
+:- module(lectura_csv, [cargar_datos/1, cargar_datos/2, limpiar_datos/0,
+    punto/4, conexion/6, unidad/5, solicitud/7]).
 
 :- use_module(library(csv)).
 :- use_module(library(aggregate)).
@@ -42,12 +35,8 @@ contar_datos(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
 % Comprueba que la carpeta y los cuatro CSV requeridos existan.
 validar_archivos(CarpetaDatos) :-
     (   exists_directory(CarpetaDatos)
-    ->  validar_archivos_requeridos(CarpetaDatos, [
-            'puntos.csv',
-            'conexiones.csv',
-            'unidades.csv',
-            'solicitudes.csv'
-        ])
+    ->  validar_archivos_requeridos(CarpetaDatos,
+            ['puntos.csv', 'conexiones.csv', 'unidades.csv', 'solicitudes.csv'])
     ;   throw(error(existence_error(directory, CarpetaDatos), cargar_datos/2))
     ).
 
@@ -65,11 +54,8 @@ leer_filas(CarpetaDatos, NombreArchivo, Filas) :-
     directory_file_path(CarpetaDatos, NombreArchivo, RutaArchivo),
     setup_call_cleanup(
         open(RutaArchivo, read, Archivo, [encoding(utf8)]),
-        csv_read_stream(
-            Archivo,
-            [_Encabezado|Filas],
-            [functor(fila), strip(true), convert(true)]
-        ),
+        csv_read_stream(Archivo, [_Encabezado|Filas],
+            [functor(fila), strip(true), convert(true)]),
         close(Archivo)
     ).
 
@@ -99,9 +85,7 @@ cargar_solicitudes(CarpetaDatos) :-
     maplist(guardar_solicitud, Filas).
 
 guardar_solicitud(fila(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada)) :-
-    assertz(solicitud(
-        Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada
-    )).
+    assertz(solicitud(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada)).
 
 % Elimina los hechos anteriores antes de una nueva carga.
 limpiar_datos :-

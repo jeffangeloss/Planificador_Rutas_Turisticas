@@ -1,15 +1,54 @@
 // FA02 Selección de atractivos dentro de un presupuesto. Responsable: Melissa Ruíz.
 #include "FA02.h"
 
+#include "ArchivosCSV.h"
+#include "Solicitud.h"
+#include "Tipos.h"
+#include "Unidad.h"
+#include "Visitante.h"
+
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
-CotizadorFA02::CotizadorFA02(const string &rutaDatos)
-    : carpetaDatos(rutaDatos), archivosCSV(rutaDatos) {}
+struct AlternativaFA02 {
+  vector<string> ruta;
+  TipoUnidad tipoTransporte;
+  int cantidadVisitas;
+  double costoTotal;
+  int tiempoTotal;
+};
+
+class CotizadorFA02 {
+private:
+  string carpetaDatos;
+  ArchivosCSV archivosCSV;
+
+  string leerTexto(const string &mensaje);
+  bool leerDoublePositivo(const string &mensaje, double &numero);
+  bool leerEnteroPositivo(const string &mensaje, int &numero);
+  bool leerEnteroNoNegativo(const string &mensaje, int &numero);
+  vector<string> separarPor(const string &texto, char separador);
+  bool parsearAlternativa(const string &linea, AlternativaFA02 &alternativa);
+  string comandoHaskell(int generales, int estudiantes, int ninos, double presupuesto, int tiempoMaximo);
+  bool generarAlternativas(int generales, int estudiantes, int ninos, double presupuesto, int tiempoMaximo,
+                           vector<AlternativaFA02> &alternativas);
+  string siguienteCodigoSolicitud(const vector<Solicitud> &solicitudes);
+  int buscarUnidadDisponible(const vector<Unidad> &unidades, TipoUnidad tipoTransporte, int cantidadPersonas);
+  void agregarVisitantes(vector<Visitante> &visitantes, const string &codigoSolicitud,
+                         TipoVisitante tipoVisitante, int cantidad);
+  void registrarPlan(int generales, int estudiantes, int ninos, const AlternativaFA02 &alternativa);
+
+public:
+  CotizadorFA02(const string &rutaDatos);
+  void ejecutar();
+};
+
+CotizadorFA02::CotizadorFA02(const string &rutaDatos) : carpetaDatos(rutaDatos), archivosCSV(rutaDatos) {}
 
 // Lee una entrada que no contenga comas para no alterar los CSV.
 string CotizadorFA02::leerTexto(const string &mensaje) {
@@ -22,9 +61,7 @@ string CotizadorFA02::leerTexto(const string &mensaje) {
   }
 }
 
-// Valida un número decimal mayor que cero.
-bool CotizadorFA02::leerDoublePositivo(const string &mensaje,
-                                       double &numero) {
+bool CotizadorFA02::leerDoublePositivo(const string &mensaje, double &numero) {
   stringstream lector(leerTexto(mensaje));
   char sobrante;
   if (!(lector >> numero) || numero <= 0 || lector >> sobrante) {
@@ -34,7 +71,6 @@ bool CotizadorFA02::leerDoublePositivo(const string &mensaje,
   return true;
 }
 
-// Valida un número entero mayor que cero.
 bool CotizadorFA02::leerEnteroPositivo(const string &mensaje, int &numero) {
   stringstream lector(leerTexto(mensaje));
   char sobrante;
@@ -45,7 +81,6 @@ bool CotizadorFA02::leerEnteroPositivo(const string &mensaje, int &numero) {
   return true;
 }
 
-// Valida una cantidad que puede ser cero.
 bool CotizadorFA02::leerEnteroNoNegativo(const string &mensaje, int &numero) {
   stringstream lector(leerTexto(mensaje));
   char sobrante;
@@ -57,8 +92,7 @@ bool CotizadorFA02::leerEnteroNoNegativo(const string &mensaje, int &numero) {
 }
 
 // Separa los campos de la respuesta interna de Haskell.
-vector<string> CotizadorFA02::separarPor(const string &texto,
-                                         char separador) {
+vector<string> CotizadorFA02::separarPor(const string &texto, char separador) {
   vector<string> partes;
   string parte;
   for (int i = 0; i <= static_cast<int>(texto.size()); i++) {
@@ -73,8 +107,7 @@ vector<string> CotizadorFA02::separarPor(const string &texto,
 }
 
 // Convierte una línea FA02_DATA en una alternativa temporal.
-bool CotizadorFA02::parsearAlternativa(const string &linea,
-                                       AlternativaFA02 &alternativa) {
+bool CotizadorFA02::parsearAlternativa(const string &linea, AlternativaFA02 &alternativa) {
   vector<string> campos = separarPor(linea, '|');
   if (campos.size() != 7 || campos[0] != "FA02_DATA") return false;
 
@@ -82,8 +115,7 @@ bool CotizadorFA02::parsearAlternativa(const string &linea,
   stringstream lectorCosto(campos[5]);
   stringstream lectorTiempo(campos[6]);
   alternativa.ruta = separarPor(campos[2], '>');
-  if (!archivosCSV.convertirTipoUnidad(campos[3],
-                                       alternativa.tipoTransporte)) {
+  if (!archivosCSV.convertirTipoUnidad(campos[3], alternativa.tipoTransporte)) {
     return false;
   }
   lectorCantidad >> alternativa.cantidadVisitas;
@@ -95,9 +127,8 @@ bool CotizadorFA02::parsearAlternativa(const string &linea,
 }
 
 // Construye el comando que ejecuta FA02 en Haskell.
-string CotizadorFA02::comandoHaskell(int generales, int estudiantes,
-                                     int ninos, double presupuesto,
-                                     int tiempoMaximo) {
+string CotizadorFA02::comandoHaskell(int generales, int estudiantes, int ninos,
+                                     double presupuesto, int tiempoMaximo) {
   stringstream comando;
   comando << fixed << setprecision(2);
   if (carpetaDatos == "_datos") {
@@ -111,11 +142,9 @@ string CotizadorFA02::comandoHaskell(int generales, int estudiantes,
 }
 
 // Ejecuta Haskell y recoge las alternativas devueltas por el protocolo FA02.
-bool CotizadorFA02::generarAlternativas(
-    int generales, int estudiantes, int ninos, double presupuesto,
-    int tiempoMaximo, vector<AlternativaFA02> &alternativas) {
-  string comando = comandoHaskell(generales, estudiantes, ninos, presupuesto,
-                                  tiempoMaximo);
+bool CotizadorFA02::generarAlternativas(int generales, int estudiantes, int ninos, double presupuesto,
+                                        int tiempoMaximo, vector<AlternativaFA02> &alternativas) {
+  string comando = comandoHaskell(generales, estudiantes, ninos, presupuesto, tiempoMaximo);
 #ifdef _WIN32
   FILE *proceso = _popen(comando.c_str(), "r");
 #else
@@ -162,9 +191,7 @@ bool CotizadorFA02::generarAlternativas(
   return !hayError;
 }
 
-// Obtiene el siguiente código de solicitud disponible.
-string CotizadorFA02::siguienteCodigoSolicitud(
-    const vector<Solicitud> &solicitudes) {
+string CotizadorFA02::siguienteCodigoSolicitud(const vector<Solicitud> &solicitudes) {
   int mayor = 0;
   for (int i = 0; i < static_cast<int>(solicitudes.size()); i++) {
     string codigoActual = solicitudes[i].getCodigo();
@@ -184,31 +211,23 @@ string CotizadorFA02::siguienteCodigoSolicitud(
 }
 
 // Busca la unidad disponible más económica del tipo recomendado.
-int CotizadorFA02::buscarUnidadDisponible(const vector<Unidad> &unidades,
-                                          TipoUnidad tipoTransporte,
+int CotizadorFA02::buscarUnidadDisponible(const vector<Unidad> &unidades, TipoUnidad tipoTransporte,
                                           int cantidadPersonas) {
   int posicion = -1;
   for (int i = 0; i < static_cast<int>(unidades.size()); i++) {
-    bool compatible = unidades[i].estaDisponible()
-                      && unidades[i].getTipo() == tipoTransporte
+    bool compatible = unidades[i].estaDisponible() && unidades[i].getTipo() == tipoTransporte
                       && unidades[i].tieneCapacidad(cantidadPersonas);
-    if (compatible
-        && (posicion == -1
-            || unidades[i].getCostoKm() < unidades[posicion].getCostoKm()
-            || (unidades[i].getCostoKm() == unidades[posicion].getCostoKm()
-                && unidades[i].getCodigo()
-                       < unidades[posicion].getCodigo()))) {
-      posicion = i;
-    }
+    bool menorCosto = posicion == -1 || unidades[i].getCostoKm() < unidades[posicion].getCostoKm();
+    bool desempate = posicion != -1 && unidades[i].getCostoKm() == unidades[posicion].getCostoKm()
+                     && unidades[i].getCodigo() < unidades[posicion].getCodigo();
+    if (compatible && (menorCosto || desempate)) posicion = i;
   }
   return posicion;
 }
 
 // Agrega una fila por visitante asociado a la solicitud creada.
 void CotizadorFA02::agregarVisitantes(vector<Visitante> &visitantes,
-                                      const string &codigoSolicitud,
-                                      TipoVisitante tipoVisitante,
-                                      int cantidad) {
+                                      const string &codigoSolicitud, TipoVisitante tipoVisitante, int cantidad) {
   for (int i = 0; i < cantidad; i++) {
     visitantes.push_back(Visitante{codigoSolicitud, tipoVisitante});
   }
@@ -232,8 +251,7 @@ void CotizadorFA02::registrarPlan(int generales, int estudiantes, int ninos,
     return;
   }
 
-  int posicionUnidad = buscarUnidadDisponible(
-      unidades, alternativa.tipoTransporte, cantidadPersonas);
+  int posicionUnidad = buscarUnidadDisponible(unidades, alternativa.tipoTransporte, cantidadPersonas);
   if (posicionUnidad == -1) {
     cout << "[ERROR] La unidad recomendada ya no esta disponible." << endl;
     cout << "Vuelve a generar las alternativas." << endl;
@@ -241,17 +259,14 @@ void CotizadorFA02::registrarPlan(int generales, int estudiantes, int ninos,
   }
 
   string codigoSolicitud = siguienteCodigoSolicitud(solicitudes);
-  Solicitud solicitud{codigoSolicitud, "P000", alternativa.ruta.back(),
-                      cantidadPersonas, Prioridad::Media,
-                      EstadoSolicitud::Pendiente, ""};
+  Solicitud solicitud{codigoSolicitud, "P000", alternativa.ruta.back(), cantidadPersonas,
+                      Prioridad::Media, EstadoSolicitud::Pendiente, ""};
   solicitud.asignarUnidad(unidades[posicionUnidad].getCodigo());
 
   unidades[posicionUnidad].ocupar();
   solicitudes.push_back(solicitud);
-  agregarVisitantes(visitantes, codigoSolicitud, TipoVisitante::General,
-                    generales);
-  agregarVisitantes(visitantes, codigoSolicitud, TipoVisitante::Estudiante,
-                    estudiantes);
+  agregarVisitantes(visitantes, codigoSolicitud, TipoVisitante::General, generales);
+  agregarVisitantes(visitantes, codigoSolicitud, TipoVisitante::Estudiante, estudiantes);
   agregarVisitantes(visitantes, codigoSolicitud, TipoVisitante::Nino, ninos);
 
   if (!archivosCSV.guardarPlanFA02(unidades, solicitudes, visitantes)) {
@@ -260,12 +275,10 @@ void CotizadorFA02::registrarPlan(int generales, int estudiantes, int ninos,
   }
 
   cout << "[OK] Alternativa seleccionada." << endl;
-  cout << "[OK] Unidad " << unidades[posicionUnidad].getCodigo()
-       << " asignada." << endl;
+  cout << "[OK] Unidad " << unidades[posicionUnidad].getCodigo() << " asignada." << endl;
   cout << "[OK] Solicitud " << codigoSolicitud << " creada." << endl;
 }
 
-// Solicita los parámetros y coordina la cotización completa.
 void CotizadorFA02::ejecutar() {
   int generales;
   int estudiantes;
@@ -281,19 +294,13 @@ void CotizadorFA02::ejecutar() {
   double presupuesto;
   int tiempoMaximo;
   if (!leerDoublePositivo("Presupuesto maximo: ", presupuesto)) return;
-  if (!leerEnteroPositivo("Tiempo disponible en minutos: ", tiempoMaximo)) {
-    return;
-  }
+  if (!leerEnteroPositivo("Tiempo disponible en minutos: ", tiempoMaximo)) return;
 
   vector<AlternativaFA02> alternativas;
-  if (!generarAlternativas(generales, estudiantes, ninos, presupuesto,
-                           tiempoMaximo, alternativas)) {
-    return;
-  }
+  if (!generarAlternativas(generales, estudiantes, ninos, presupuesto, tiempoMaximo, alternativas)) return;
   if (alternativas.empty()) return;
 
-  stringstream lectorOpcion(
-      leerTexto("Seleccione una alternativa (1-3) o 0 para cancelar: "));
+  stringstream lectorOpcion(leerTexto("Seleccione una alternativa (1-3) o 0 para cancelar: "));
   int opcion;
   char sobrante;
   if (!(lectorOpcion >> opcion) || lectorOpcion >> sobrante) {
@@ -312,7 +319,6 @@ void CotizadorFA02::ejecutar() {
   registrarPlan(generales, estudiantes, ninos, alternativas[opcion - 1]);
 }
 
-// Conserva la interfaz utilizada por el menú principal.
 void ejecutarFA02(const string &carpetaDatos) {
   CotizadorFA02 cotizador(carpetaDatos);
   cotizador.ejecutar();
