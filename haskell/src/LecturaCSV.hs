@@ -3,6 +3,8 @@
 -- Enunciado 4.2.1: leer conexiones.csv, unidades.csv y pedidos.csv (aqui, solicitudes.csv).
 module LecturaCSV where
 
+import Data.Char (isSpace)
+import System.IO.Error (catchIOError)
 import Text.Read (readMaybe)
 import Tipos
   ( Conexion (..)
@@ -20,16 +22,25 @@ import Tipos
   , Visitante (..)
   )
 
-separarCampos :: String -> [String]
-separarCampos fila =
-  case break (== ',') fila of
-    (campo, []) -> [campo]
-    (campo, _ : resto) -> campo : separarCampos resto
+-- Agrega un caracter al primer campo, o abre un campo nuevo si el caracter es una coma.
+agregarCaracter :: Char -> [String] -> [String]
+agregarCaracter ',' campos = "" : campos
+agregarCaracter caracter (campo : campos) = (caracter : campo) : campos
+agregarCaracter caracter [] = [[caracter]]
 
+-- Separa una fila en sus campos recorriendola de derecha a izquierda con foldr.
+separarCampos :: String -> [String]
+separarCampos = foldr agregarCaracter [""]
+
+-- Quita el retorno de carro que dejan los archivos guardados en Windows.
+quitarRetorno :: String -> String
+quitarRetorno = filter (/= '\r')
+
+-- Devuelve las filas de datos sin la cabecera ni las lineas en blanco.
 leerFilas :: FilePath -> IO [String]
 leerFilas ruta = do
   contenido <- readFile ruta
-  pure (drop 1 (lines contenido))
+  pure (filter (not . all isSpace) (map quitarRetorno (drop 1 (lines contenido))))
 
 parsearTipoPunto :: String -> Maybe TipoPunto
 parsearTipoPunto "agencia" = Just Agencia
@@ -140,10 +151,17 @@ parsearEntrada fila =
         else Nothing
     _ -> Nothing
 
-leerCSV :: (String -> Maybe a) -> FilePath -> IO (Maybe [a])
-leerCSV parsear ruta = do
+leerYParsear :: (String -> Maybe a) -> FilePath -> IO (Maybe [a])
+leerYParsear parsear ruta = do
   filas <- leerFilas ruta
-  pure (traverse parsear filas)
+  length filas `seq` pure (traverse parsear filas)
+
+sinArchivo :: IOError -> IO (Maybe [a])
+sinArchivo _ = pure Nothing
+
+-- Si el archivo no existe o no se puede leer, devuelve Nothing en vez de detener el programa.
+leerCSV :: (String -> Maybe a) -> FilePath -> IO (Maybe [a])
+leerCSV parsear ruta = catchIOError (leerYParsear parsear ruta) sinArchivo
 
 leerPuntos :: FilePath -> IO (Maybe [Punto])
 leerPuntos = leerCSV parsearPunto

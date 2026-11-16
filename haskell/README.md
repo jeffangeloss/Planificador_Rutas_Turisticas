@@ -15,7 +15,9 @@ Desde la raíz del repositorio, se puede indicar la carpeta compartida:
 cabal run --project-dir=haskell turismo-haskell -- _datos
 ```
 
-El menú carga `conexiones.csv` y `solicitudes.csv`. La opción 4.2.6 muestra
+Al iniciar, el menú carga `conexiones.csv`, `unidades.csv` y `solicitudes.csv`,
+informa con `[OK]` o `[ERROR]` el resultado de cada archivo y solo se abre si
+los tres se leyeron bien. La opción 4.2.6 muestra
 el total de solicitudes, su distribución por estado, la cantidad total de
 turistas y el detalle de cada solicitud. El reporte usa `filter` para contar
 estados y recursión para sumar turistas y generar las líneas. La opción 4.2.7

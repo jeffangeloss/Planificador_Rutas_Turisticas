@@ -1,10 +1,11 @@
 module Main (main) where
 
 import CostoRuta (ejecutarCostoRuta)
-import LecturaCSV (leerConexiones, leerSolicitudes)
+import LecturaCSV (leerConexiones, leerSolicitudes, leerUnidades)
 import Rutas (ejecutarRutas)
 import Tipos (Conexion)
 import Tipos (Solicitud)
+import Tipos (Unidad)
 import Vecinos (ejecutarVecinos)
 import ReporteSolicitudes (ejecutarReporteSolicitudes)
 import SeleccionAtractivos (ejecutarSeleccionAtractivos)
@@ -40,19 +41,27 @@ menuPrincipal conexiones solicitudes = do
     then return ()
     else menuPrincipal conexiones solicitudes
 
-iniciarPrograma :: Maybe [Conexion] -> Maybe [Solicitud] -> IO ()
-iniciarPrograma Nothing _ = putStrLn "[ERROR] No se pudo leer conexiones.csv."
-iniciarPrograma _ Nothing = putStrLn "[ERROR] No se pudo leer solicitudes.csv."
-iniciarPrograma (Just conexiones) (Just solicitudes) = do
-  putStrLn "[OK] conexiones.csv cargado correctamente."
-  putStrLn "[OK] solicitudes.csv cargado correctamente."
-  menuPrincipal conexiones solicitudes
+informarLectura :: String -> Maybe [a] -> IO ()
+informarLectura archivo Nothing = putStrLn ("[ERROR] No se pudo leer " ++ archivo ++ ".")
+informarLectura archivo (Just _) = putStrLn ("[OK] " ++ archivo ++ " cargado correctamente.")
 
+-- Informa el resultado de cada archivo y abre el menu solo si los tres se leyeron bien.
+iniciarPrograma :: Maybe [Conexion] -> Maybe [Unidad] -> Maybe [Solicitud] -> IO ()
+iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes = do
+  informarLectura "conexiones.csv" resultadoConexiones
+  informarLectura "unidades.csv" resultadoUnidades
+  informarLectura "solicitudes.csv" resultadoSolicitudes
+  case (resultadoConexiones, resultadoUnidades, resultadoSolicitudes) of
+    (Just conexiones, Just _, Just solicitudes) -> menuPrincipal conexiones solicitudes
+    _ -> putStrLn "[ERROR] Corrige los archivos indicados y vuelve a abrir el modulo."
+
+-- 4.2.1 Lectura de conexiones.csv, unidades.csv y solicitudes.csv. Responsable: Jefferson Sanchez.
 iniciarMenu :: FilePath -> IO ()
 iniciarMenu carpetaDatos = do
   resultadoConexiones <- leerConexiones (carpetaDatos ++ "/conexiones.csv")
+  resultadoUnidades <- leerUnidades (carpetaDatos ++ "/unidades.csv")
   resultadoSolicitudes <- leerSolicitudes (carpetaDatos ++ "/solicitudes.csv")
-  iniciarPrograma resultadoConexiones resultadoSolicitudes
+  iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes
 
 -- 4.2.7 Resultado esperado: integración del programa. Responsable: Samantha Rodriguez.
 main :: IO ()
