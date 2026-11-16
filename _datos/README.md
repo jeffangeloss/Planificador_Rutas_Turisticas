@@ -223,28 +223,34 @@ punto,turno,capacidad_maxima
 codigo,solicitud,punto,fecha,turno,personas,estado,orden_espera
 ```
 
-- `codigo`: identificador único que comienza con `R`, por ejemplo `R001`.
+- `codigo`: identificador único formado por `R` y dígitos, por ejemplo `R001`.
 - `solicitud`: código existente en `solicitudes.csv`. El `punto` de la reserva
   es el destino de esa solicitud.
 - `fecha`: día de la visita en formato `AAAA-MM-DD`.
-- `turno`: turno que tiene cupo para ese punto en `cupos.csv`.
-- `personas`: entre 1 y la `cantidad_turistas` de la solicitud, sin superar el
-  cupo del turno.
+- `turno`: turno con capacidad registrada para ese punto en `cupos.csv`.
+- `personas`: entre 1 y la `cantidad_turistas` de la solicitud. Una reserva
+  confirmada o en espera no supera la capacidad del turno, y una cancelada puede
+  superarla si después baja la capacidad.
 - `estado`: `confirmada`, `en_espera` o `cancelada`.
 - `orden_espera`: posición en la lista de espera de su punto, fecha y turno. Vale
   `0` si la reserva está confirmada o cancelada.
 
 Una reserva nueva queda confirmada si cabe en los cupos libres de su turno y,
 si no, entra al final de la lista de espera. Una solicitud tiene a lo sumo una
-reserva activa por fecha y turno. Al cancelar una reserva confirmada o al subir
-un cupo, el sistema recorre la lista de espera en orden de llegada y confirma
-cada reserva que cabe en los cupos libres; la que no cabe conserva su lugar, y
-una sola liberación puede confirmar varias reservas. Un cupo no puede bajar de
-las personas ya confirmadas en ese turno ni del grupo más grande en espera. Al
+reserva activa, confirmada o en espera, por fecha y turno. Al cancelar una
+reserva confirmada o al subir la capacidad de un turno, el sistema recorre la
+lista de espera en orden de llegada y confirma cada reserva que cabe en los
+cupos libres; la que no cabe conserva su lugar, y una sola liberación puede
+confirmar varias reservas. La capacidad de un turno no puede bajar de las
+personas ya confirmadas en alguna fecha ni del grupo más grande en espera. Al
 cargar, la lista de espera se reconstruye desde `reservas.csv` ordenada por
-`orden_espera`. Si una fila no cumple estas reglas, FA03 la informa y queda en
-solo lectura hasta corregir el archivo, para no perderla al guardar. Las reservas no
-cambian el estado de las solicitudes ni de las unidades.
+`orden_espera` y se confirman las reservas que ya caben. Si una fila no cumple
+estas reglas, FA03 la informa y queda en solo lectura hasta corregir el archivo
+y volver a abrir la opción 9, para no perderla al guardar. En solo lectura la
+carga no confirma ninguna reserva. FA03 también queda en solo lectura si al
+cargar no logra guardar las reservas que confirma, o si un cambio falla y no
+logra restaurar `cupos.csv`. Las reservas no cambian el estado de las
+solicitudes ni de las unidades.
 
 ## Reglas generales
 

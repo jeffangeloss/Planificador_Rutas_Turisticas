@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <utility>
 
@@ -92,6 +93,7 @@ string AgendaCupos::siguienteCodigo() const {
       mayor = numero;
     }
   }
+  if (mayor == numeric_limits<long long>::max()) return "";
   stringstream nuevo;
   nuevo << 'R' << setw(3) << setfill('0') << mayor + 1;
   return nuevo.str();
@@ -104,7 +106,7 @@ bool AgendaCupos::reservar(const string &solicitud, const string &punto,
   if (maximo == -1 || personas <= 0 || personas > maximo) return false;
 
   string codigo = siguienteCodigo();
-  if (indiceReserva(codigo) != -1) return false;
+  if (codigo.empty() || indiceReserva(codigo) != -1) return false;
   if (personas <= maximo - ocupados(punto, fecha, turno)) {
     creada = Reserva(codigo, solicitud, punto, fecha, turno, personas,
                      EstadoReserva::Confirmada, 0);

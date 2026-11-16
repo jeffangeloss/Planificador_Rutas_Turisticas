@@ -51,5 +51,7 @@ public:
 bool fechaValida(const std::string &fecha);
 bool turnoValido(const std::string &turno);
 bool leerEntero(const std::string &texto, int &numero);
+// Codigo de reserva formado por R y digitos, como R001.
+bool codigoReservaValido(const std::string &codigo);
 
 #endif

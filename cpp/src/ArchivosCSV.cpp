@@ -592,7 +592,7 @@ vector<Reserva> ArchivosCSV::cargarReservas() const {
     int personas = 0;
     int orden = 0;
     EstadoReserva estado = EstadoReserva::Cancelada;
-    bool valida = campos.size() == 8 && campos[0] != "" && campos[1] != ""
+    bool valida = campos.size() == 8 && codigoReservaValido(campos[0]) && campos[1] != ""
                   && campos[2] != "" && fechaValida(campos[3])
                   && turnoValido(campos[4]) && leerEntero(campos[5], personas)
                   && personas > 0 && convertirEstadoReserva(campos[6], estado)

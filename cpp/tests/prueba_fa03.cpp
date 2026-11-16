@@ -2,13 +2,16 @@
 // Pruebas de la agenda de cupos y de la lista de espera, sin entrada por
 // consola. Cubren la regla de promocion de la Propuesta (se confirma, en orden
 // de llegada, cada reserva en espera que cabe en el cupo libre, y la que no
-// cabe conserva su lugar) y la lectura y escritura de cupos.csv y reservas.csv.
+// cabe conserva su lugar), la lectura y escritura de cupos.csv y reservas.csv,
+// la validacion de la carga y el guardado con vuelta atras.
 
 #include "AgendaCupos.h"
 #include "ArchivosCSV.h"
+#include "FA03.h"
 
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -255,6 +258,244 @@ void probarCargaDefensiva() {
   filesystem::remove_all(carpeta);
 }
 
+// Puntos y solicitudes de las pruebas de carga, tomados de _datos.
+vector<Punto> puntosDePrueba() {
+  return {Punto("P001", "Hotel Miraflores", TipoPunto::Hotel, "Miraflores"),
+          Punto("P004", "Mirador de Barranco", TipoPunto::Mirador, "Barranco")};
+}
+
+vector<Solicitud> solicitudesDePrueba() {
+  return {Solicitud("S003", "P001", "P004", 20, Prioridad::Alta,
+                    EstadoSolicitud::Entregada, "U003"),
+          Solicitud("S006", "P000", "P004", 4, Prioridad::Media,
+                    EstadoSolicitud::Asignada, "U004"),
+          Solicitud("S007", "P000", "P004", 2, Prioridad::Media,
+                    EstadoSolicitud::Asignada, "U004")};
+}
+
+Reserva reservaEnP004(const string &codigo, const string &solicitud,
+                      const string &turno, int personas, EstadoReserva estado,
+                      int orden) {
+  return Reserva(codigo, solicitud, "P004", "2026-11-15", turno, personas,
+                 estado, orden);
+}
+
+void probarCodigoDeReserva() {
+  comprobar(codigoReservaValido("R001") && codigoReservaValido("R1000"),
+            "acepta codigos de reserva con R y digitos");
+  comprobar(!codigoReservaValido("X010") && !codigoReservaValido("R")
+                && !codigoReservaValido("r001") && !codigoReservaValido("R00A")
+                && !codigoReservaValido(""),
+            "rechaza codigos de reserva sin R inicial o con otros caracteres");
+}
+
+void probarCargaRechazaCodigoSinR() {
+  const filesystem::path carpeta = carpetaDePrueba("codigo");
+  filesystem::remove_all(carpeta);
+  filesystem::create_directories(carpeta);
+  ofstream reservas((carpeta / "reservas.csv").string(), ios::binary);
+  reservas << "codigo,solicitud,punto,fecha,turno,personas,estado,orden_espera\n"
+           << "R001,S006,P004,2026-11-15,10:00,4,confirmada,0\n"
+           << "X010,S007,P004,2026-11-15,10:00,2,confirmada,0\n";
+  reservas.close();
+  ArchivosCSV archivos(carpeta.string());
+  vector<Reserva> leidas = archivos.cargarReservas();
+  comprobar(leidas.size() == 1 && leidas[0].getCodigo() == "R001",
+            "la carga descarta la reserva cuyo codigo no empieza con R");
+  filesystem::remove_all(carpeta);
+}
+
+void probarCargaConservaCanceladaGrande() {
+  // Se reserva un grupo de 12, se cancela y despues la capacidad baja a 5.
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "16:00", 5)},
+      {reservaEnP004("R006", "S003", "16:00", 12, EstadoReserva::Cancelada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.size() == 1 && carga.errores.empty() && !carga.soloLectura,
+            "una reserva cancelada no se compara con la capacidad actual del turno");
+}
+
+void probarCargaDescartaActivaGrande() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "16:00", 5)},
+      {reservaEnP004("R006", "S003", "16:00", 12, EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.empty() && carga.errores.size() == 1 && carga.soloLectura,
+            "una reserva confirmada mayor que la capacidad se descarta y deja solo lectura");
+}
+
+void probarCargaDescartaActivaRepetida() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R001", "S006", "10:00", 4, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R011", "S006", "10:00", 1, EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.size() == 1 && carga.reservas[0].getCodigo() == "R001"
+                && carga.soloLectura,
+            "se descarta la segunda reserva activa de una solicitud en la misma fecha y turno");
+}
+
+void probarCargaAceptaCanceladaYActiva() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R012", "S007", "10:00", 2, EstadoReserva::Cancelada, 0),
+       reservaEnP004("R013", "S007", "10:00", 2, EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.size() == 2 && !carga.soloLectura,
+            "una reserva cancelada no impide otra activa de la misma solicitud y turno");
+}
+
+void probarSoloLecturaNoNormaliza() {
+  // R001 se descarta porque su solicitud no existe, y sin ella R003 cabria.
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R001", "S999", "10:00", 4, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R002", "S007", "10:00", 2, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R003", "S003", "10:00", 6, EstadoReserva::EnEspera, 1)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  const Reserva *r3 = buscar(carga.agenda, "R003");
+  comprobar(carga.soloLectura && carga.promovidas.empty() && r3 != nullptr
+                && r3->estaEnEspera(),
+            "en solo lectura la carga no confirma reservas en memoria");
+}
+
+void probarCargaNormalizaSinDescartes() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R002", "S007", "10:00", 2, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R003", "S003", "10:00", 6, EstadoReserva::EnEspera, 1)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  const Reserva *r3 = buscar(carga.agenda, "R003");
+  comprobar(!carga.soloLectura && carga.promovidas.size() == 1
+                && carga.promovidas[0] == "R003" && r3 != nullptr && r3->estaConfirmada(),
+            "sin descartes la carga confirma la reserva que ya cabe");
+  comprobar(carga.reservas.size() == 2 && carga.reservas[1].estaEnEspera(),
+            "la carga conserva las filas leidas para volver a ellas si no puede guardar");
+}
+
+void probarGuardadoConVueltaAtras() {
+  vector<string> pasos;
+  auto paso = [&pasos](const string &nombre, bool resultado) {
+    return [&pasos, nombre, resultado]() {
+      pasos.push_back(nombre);
+      return resultado;
+    };
+  };
+  comprobar(guardarCambioFA03(true, true, paso("cupos", true), paso("reservas", true),
+                              paso("restaurar", true)) == GuardadoFA03::Guardado
+                && pasos == vector<string>{"cupos", "reservas"},
+            "un cambio que se guarda bien escribe cupos y despues reservas");
+  pasos.clear();
+  comprobar(guardarCambioFA03(true, true, paso("cupos", false), paso("reservas", true),
+                              paso("restaurar", true)) == GuardadoFA03::Revertido
+                && pasos == vector<string>{"cupos"},
+            "si falla cupos.csv no se escribe reservas.csv ni se restaura nada");
+  pasos.clear();
+  comprobar(guardarCambioFA03(true, true, paso("cupos", true), paso("reservas", false),
+                              paso("restaurar", true)) == GuardadoFA03::Revertido
+                && pasos == vector<string>{"cupos", "reservas", "restaurar"},
+            "si falla reservas.csv despues de cupos.csv se restaura cupos.csv");
+  pasos.clear();
+  comprobar(guardarCambioFA03(true, true, paso("cupos", true), paso("reservas", false),
+                              paso("restaurar", false)) == GuardadoFA03::SinRestaurar,
+            "si tampoco se puede restaurar cupos.csv el resultado lo dice");
+  pasos.clear();
+  comprobar(guardarCambioFA03(false, true, paso("cupos", true), paso("reservas", false),
+                              paso("restaurar", true)) == GuardadoFA03::Revertido
+                && pasos == vector<string>{"reservas"},
+            "un cambio que solo toca reservas.csv no reescribe cupos.csv al fallar");
+}
+
+void probarCargaClaveIncluyeFechaYTurno() {
+  CargaFA03 dosTurnos = armarCargaFA03(
+      {Cupo("P004", "10:00", 9), Cupo("P004", "16:00", 9)},
+      {reservaEnP004("R001", "S006", "10:00", 4, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R002", "S006", "16:00", 4, EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(dosTurnos.reservas.size() == 2 && !dosTurnos.soloLectura,
+            "una solicitud puede tener reservas activas en dos turnos distintos");
+  CargaFA03 dosFechas = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {Reserva("R001", "S006", "P004", "2026-11-15", "10:00", 4,
+               EstadoReserva::Confirmada, 0),
+       Reserva("R002", "S006", "P004", "2026-11-16", "10:00", 4,
+               EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(dosFechas.reservas.size() == 2 && !dosFechas.soloLectura,
+            "una solicitud puede tener reservas activas en dos fechas distintas");
+}
+
+void probarCargaEsperaCuentaComoActiva() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R001", "S006", "10:00", 4, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R011", "S006", "10:00", 1, EstadoReserva::EnEspera, 1)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.size() == 1 && carga.reservas[0].getCodigo() == "R001"
+                && carga.soloLectura,
+            "una reserva en espera tambien cuenta como reserva activa repetida");
+}
+
+void probarCargaDescartaEsperaGrande() {
+  CargaFA03 carga = armarCargaFA03(
+      {Cupo("P004", "16:00", 5)},
+      {reservaEnP004("R006", "S003", "16:00", 12, EstadoReserva::EnEspera, 1)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(carga.reservas.empty() && carga.errores.size() == 1 && carga.soloLectura,
+            "una reserva en espera mayor que la capacidad se descarta y deja solo lectura");
+}
+
+void probarCargaOtrasCausasDeSoloLectura() {
+  CargaFA03 malFormadas = armarCargaFA03(
+      {Cupo("P004", "10:00", 9)},
+      {reservaEnP004("R002", "S007", "10:00", 2, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R003", "S003", "10:00", 6, EstadoReserva::EnEspera, 1)},
+      true, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(malFormadas.soloLectura && malFormadas.promovidas.empty(),
+            "con filas mal formadas la carga queda en solo lectura y no confirma");
+  CargaFA03 deHotel = armarCargaFA03({Cupo("P001", "10:00", 5)}, {}, false,
+                                     puntosDePrueba(), solicitudesDePrueba());
+  comprobar(deHotel.cupos.empty() && deHotel.errores.size() == 1 && deHotel.soloLectura,
+            "se descarta la capacidad de un punto que no es atractivo ni mirador");
+  CargaFA03 sobrevendido = armarCargaFA03(
+      {Cupo("P004", "10:00", 5)},
+      {reservaEnP004("R001", "S006", "10:00", 4, EstadoReserva::Confirmada, 0),
+       reservaEnP004("R002", "S007", "10:00", 2, EstadoReserva::Confirmada, 0)},
+      false, puntosDePrueba(), solicitudesDePrueba());
+  comprobar(sobrevendido.reservas.size() == 2 && sobrevendido.errores.size() == 1
+                && sobrevendido.soloLectura,
+            "un turno con mas confirmados que su capacidad deja solo lectura sin descartar");
+}
+
+void probarCodigoSiguienteAlMaximo() {
+  AgendaCupos alMaximo({Cupo("P004", "10:00", 9)},
+                       {confirmada("R9223372036854775807", "S003", 1)});
+  Reserva creada;
+  comprobar(alMaximo.siguienteCodigo().empty()
+                && !alMaximo.reservar("S001", "P004", "2026-11-15", "10:00", 2, creada)
+                && alMaximo.getReservas().size() == 1,
+            "no se crea una reserva cuando el codigo siguiente se desbordaria");
+}
+
+void probarAgendaSegunGuardado() {
+  AgendaCupos anterior({Cupo("P004", "10:00", 9)},
+                       {confirmada("R001", "S003", 6), enEspera("R002", "S006", 4, 1)});
+  AgendaCupos nueva({Cupo("P004", "10:00", 12)},
+                    {confirmada("R001", "S003", 6), confirmada("R002", "S006", 4)});
+  AgendaCupos guardada = agendaSegunGuardadoFA03(GuardadoFA03::Guardado, nueva, anterior);
+  AgendaCupos revertida = agendaSegunGuardadoFA03(GuardadoFA03::Revertido, nueva, anterior);
+  AgendaCupos sinRestaurar =
+      agendaSegunGuardadoFA03(GuardadoFA03::SinRestaurar, nueva, anterior);
+  const Reserva *r2 = buscar(sinRestaurar, "R002");
+  comprobar(guardada.capacidad("P004", "10:00") == 12
+                && revertida.capacidad("P004", "10:00") == 9
+                && buscar(revertida, "R002")->estaEnEspera(),
+            "tras guardar o revertir la agenda queda como el cambio o como antes");
+  comprobar(sinRestaurar.capacidad("P004", "10:00") == 12 && r2 != nullptr
+                && r2->estaEnEspera(),
+            "si no se restaura cupos.csv la agenda toma la capacidad nueva y las reservas de antes");
+}
+
 }  // namespace
 
 int main() {
@@ -271,6 +512,21 @@ int main() {
   probarNormalizar();
   probarCodigosGrandes();
   probarCargaDefensiva();
+  probarCodigoDeReserva();
+  probarCargaRechazaCodigoSinR();
+  probarCargaConservaCanceladaGrande();
+  probarCargaDescartaActivaGrande();
+  probarCargaDescartaActivaRepetida();
+  probarCargaAceptaCanceladaYActiva();
+  probarSoloLecturaNoNormaliza();
+  probarCargaNormalizaSinDescartes();
+  probarGuardadoConVueltaAtras();
+  probarCargaClaveIncluyeFechaYTurno();
+  probarCargaEsperaCuentaComoActiva();
+  probarCargaDescartaEsperaGrande();
+  probarCargaOtrasCausasDeSoloLectura();
+  probarCodigoSiguienteAlMaximo();
+  probarAgendaSegunGuardado();
   cout << (fallas == 0 ? "Todas las pruebas de FA03 pasan.\n"
                        : "Hay pruebas de FA03 que fallan.\n");
   return fallas == 0 ? 0 : 1;

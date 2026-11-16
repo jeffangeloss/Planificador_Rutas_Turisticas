@@ -103,6 +103,14 @@ bool turnoValido(const std::string &turno) {
   return horas >= 0 && horas < 24 && minutos >= 0 && minutos < 60;
 }
 
+bool codigoReservaValido(const std::string &codigo) {
+  if (codigo.size() < 2 || codigo[0] != 'R') return false;
+  for (std::size_t i = 1; i < codigo.size(); ++i) {
+    if (!std::isdigit(static_cast<unsigned char>(codigo[i]))) return false;
+  }
+  return true;
+}
+
 bool leerEntero(const std::string &texto, int &numero) {
   std::stringstream lector(texto);
   char sobrante;

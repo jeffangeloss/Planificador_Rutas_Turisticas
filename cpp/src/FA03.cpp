@@ -1,11 +1,12 @@
 // FA03 - Autor: Jefferson Sanchez.
 // Reservas de cupos por turno con lista de espera (opcion 9 del menu).
-// Registra el cupo de cada atractivo o mirador por turno y reserva una fecha y
-// un turno para una solicitud cuyo destino es ese punto. La reserva queda
-// confirmada si cabe en los cupos libres y, si no, entra a la lista de espera.
-// Al cancelar una reserva confirmada o al subir un cupo, se confirma en orden
-// de llegada cada reserva en espera que cabe, y la que no cabe conserva su
-// lugar. Cada cambio se guarda de inmediato en cupos.csv o reservas.csv.
+// Registra la capacidad de cada atractivo o mirador por turno y reserva una
+// fecha y un turno para una solicitud cuyo destino es ese punto. La reserva
+// queda confirmada si cabe en los cupos libres y, si no, entra a la lista de
+// espera. Al cancelar una reserva confirmada o al subir la capacidad de un
+// turno, se confirma en orden de llegada cada reserva en espera que cabe, y la
+// que no cabe conserva su lugar. Cada cambio se guarda de inmediato en
+// cupos.csv o reservas.csv.
 
 #include "FA03.h"
 
@@ -36,6 +37,43 @@ string cuposLibres(int libres) {
 
 bool admiteCupo(TipoPunto tipo) {
   return tipo == TipoPunto::Atractivo || tipo == TipoPunto::Mirador;
+}
+
+int indicePunto(const vector<Punto> &puntos, const string &codigo) {
+  for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
+    if (puntos[i].getCodigo() == codigo) return i;
+  }
+  return -1;
+}
+
+int indiceSolicitud(const vector<Solicitud> &solicitudes, const string &codigo) {
+  for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
+    if (solicitudes[i].getCodigo() == codigo) return i;
+  }
+  return -1;
+}
+
+// Motivo por el que una reserva leida no cumple las reglas de
+// _datos/README.md, o texto vacio si las cumple.
+string motivoReservaInvalida(const Reserva &reserva,
+                             const vector<Solicitud> &solicitudes,
+                             const AgendaCupos &conCupos) {
+  int s = indiceSolicitud(solicitudes, reserva.getSolicitud());
+  if (s == -1) return "la solicitud no existe";
+  if (solicitudes[s].getDestino() != reserva.getPunto()) {
+    return "el punto no es el destino de la solicitud";
+  }
+  int capacidad = conCupos.capacidad(reserva.getPunto(), reserva.getTurno());
+  if (capacidad == -1) return "el turno no tiene capacidad registrada";
+  if (reserva.getPersonas() > solicitudes[s].getCantidadTuristas()) {
+    return "tiene mas personas que la solicitud";
+  }
+  // Una reserva cancelada ya no ocupa cupos, asi que no se compara con la
+  // capacidad actual, que pudo bajar despues de cancelarla.
+  if (reserva.estaActiva() && reserva.getPersonas() > capacidad) {
+    return "el grupo supera la capacidad del turno";
+  }
+  return "";
 }
 
 class MenuReservas {
@@ -91,106 +129,65 @@ private:
     return 0;
   }
 
-  // Motivo por el que una reserva leida no cumple las reglas de
-  // _datos/README.md, o texto vacio si las cumple.
-  string motivoInvalida(const Reserva &reserva, const AgendaCupos &conCupos) const {
-    int s = buscarSolicitud(reserva.getSolicitud());
-    if (s == -1) return "la solicitud no existe";
-    if (solicitudes[s].getDestino() != reserva.getPunto()) {
-      return "el punto no es el destino de la solicitud";
-    }
-    int capacidad = conCupos.capacidad(reserva.getPunto(), reserva.getTurno());
-    if (capacidad == -1) return "el turno no tiene cupo";
-    if (reserva.getPersonas() > solicitudes[s].getCantidadTuristas()) {
-      return "tiene mas personas que la solicitud";
-    }
-    if (reserva.getPersonas() > capacidad) return "el grupo supera el cupo";
-    return "";
-  }
-
-  // Carga los CSV de FA03 y descarta lo que no cumple sus reglas. Si algo se
-  // descarta, FA03 queda en solo lectura para no borrar esas filas al guardar.
+  // Carga los CSV de FA03 con armarCargaFA03. Si algo se descarta, FA03 queda
+  // en solo lectura para no borrar esas filas al guardar.
   AgendaCupos cargarAgenda() {
     vector<Cupo> cuposLeidos = archivosCSV.cargarCupos();
     vector<Reserva> reservasLeidas = archivosCSV.cargarReservas();
-    bool descartes =
+    bool malFormadas =
         static_cast<int>(cuposLeidos.size()) != archivosCSV.contarFilas("cupos.csv")
         || static_cast<int>(reservasLeidas.size())
                != archivosCSV.contarFilas("reservas.csv");
-
-    vector<Cupo> cupos;
-    for (const Cupo &cupo : cuposLeidos) {
-      int i = buscarPunto(cupo.getPunto());
-      if (i == -1 || !admiteCupo(puntos[i].getTipo())) {
-        cout << "[ERROR] Cupo de " << cupo.getPunto() << " " << cupo.getTurno()
-             << " descartado: el punto no es un atractivo ni un mirador.\n";
-        descartes = true;
-      } else {
-        cupos.push_back(cupo);
-      }
-    }
-    AgendaCupos soloCupos(cupos, {});
-    vector<Reserva> reservas;
-    for (const Reserva &reserva : reservasLeidas) {
-      string motivo = motivoInvalida(reserva, soloCupos);
-      if (motivo.empty()) {
-        reservas.push_back(reserva);
-      } else {
-        cout << "[ERROR] Reserva " << reserva.getCodigo() << " descartada: "
-             << motivo << ".\n";
-        descartes = true;
-      }
-    }
-
-    AgendaCupos cargada(cupos, reservas);
-    for (const Reserva &reserva : cargada.getReservas()) {
-      if (reserva.estaConfirmada()
-          && cargada.ocupados(reserva.getPunto(), reserva.getFecha(),
-                              reserva.getTurno())
-                 > cargada.capacidad(reserva.getPunto(), reserva.getTurno())) {
-        cout << "[ERROR] El turno de " << reserva.getPunto() << " del "
-             << reserva.getFecha() << " a las " << reserva.getTurno()
-             << " tiene mas confirmados que cupo.\n";
-        descartes = true;
-        break;
-      }
-    }
-    if (descartes) {
-      soloLectura = true;
+    CargaFA03 carga = armarCargaFA03(cuposLeidos, reservasLeidas, malFormadas,
+                                     puntos, solicitudes);
+    for (const string &error : carga.errores) cout << "[ERROR] " << error << "\n";
+    soloLectura = carga.soloLectura;
+    if (soloLectura) {
       cout << "[ERROR] Corrige cupos.csv o reservas.csv. Mientras tanto FA03 solo "
               "muestra el reporte, para no perder filas al guardar.\n";
+      return carga.agenda;
     }
-
-    vector<string> promovidas = cargada.normalizar();
-    for (const string &codigo : promovidas) {
+    if (carga.promovidas.empty()) return carga.agenda;
+    if (!archivosCSV.guardarReservas(carga.agenda.getReservas())) {
+      soloLectura = true;
+      cout << "[ERROR] No se pudo guardar en reservas.csv las reservas que ya "
+              "caben. FA03 queda en solo lectura y muestra los datos del archivo.\n";
+      return AgendaCupos(carga.cupos, carga.reservas);
+    }
+    for (const string &codigo : carga.promovidas) {
       cout << "[OK] Al cargar, la reserva " << codigo
            << " pasa a confirmada porque ya cabe en su turno.\n";
     }
-    if (!promovidas.empty() && !soloLectura) {
-      archivosCSV.guardarReservas(cargada.getReservas());
-    }
-    return cargada;
+    return carga.agenda;
   }
 
   bool puedeModificar() const {
     if (!soloLectura) return true;
-    cout << "[ERROR] FA03 esta en solo lectura hasta corregir cupos.csv o "
-            "reservas.csv.\n";
+    cout << "[ERROR] FA03 esta en solo lectura por el problema que ya informo. "
+            "Resuelvelo y vuelve a abrir la opcion 9.\n";
     return false;
   }
 
-  // Guarda los archivos indicados. Si alguno falla, los archivos y la agenda
-  // vuelven al estado anterior al cambio.
+  // Guarda los archivos indicados con guardarCambioFA03. Si alguno falla, la
+  // agenda vuelve al estado anterior al cambio.
   bool guardar(const AgendaCupos &anterior, bool cupos, bool reservas) {
-    bool cuposGuardados = !cupos || archivosCSV.guardarCupos(agenda.getCupos());
-    bool reservasGuardadas =
-        cuposGuardados
-        && (!reservas || archivosCSV.guardarReservas(agenda.getReservas()));
-    if (cuposGuardados && reservasGuardadas) return true;
-    if (cupos && cuposGuardados) archivosCSV.guardarCupos(anterior.getCupos());
-    agenda = anterior;
-    cout << "[ERROR] No se pudo guardar el cambio; los archivos y la agenda "
-            "quedan como antes.\n";
+    GuardadoFA03 resultado = guardarCambioFA03(
+        cupos, reservas,
+        [this]() { return archivosCSV.guardarCupos(agenda.getCupos()); },
+        [this]() { return archivosCSV.guardarReservas(agenda.getReservas()); },
+        [this, &anterior]() { return archivosCSV.guardarCupos(anterior.getCupos()); });
+    agenda = agendaSegunGuardadoFA03(resultado, agenda, anterior);
+    if (resultado == GuardadoFA03::Guardado) return true;
+    if (resultado == GuardadoFA03::Revertido) {
+      cout << "[ERROR] No se pudo guardar el cambio; los archivos y la agenda "
+              "quedan como antes.\n";
+    } else {
+      soloLectura = true;
+      cout << "[ERROR] No se pudo guardar el cambio ni restaurar cupos.csv, que "
+              "queda con la capacidad nueva. FA03 pasa a solo lectura y muestra lo "
+              "que hay en los archivos. Al volver a abrir la opcion 9, la carga "
+              "confirma las reservas en espera que quepan con esa capacidad.\n";
+    }
     return false;
   }
 
@@ -226,12 +223,12 @@ private:
     AgendaCupos anterior = agenda;
     vector<string> promovidas;
     if (!agenda.fijarCupo(punto, turno, capacidad, promovidas)) {
-      cout << "[ERROR] El cupo no puede quedar por debajo de las personas "
+      cout << "[ERROR] La capacidad no puede quedar por debajo de las personas "
               "confirmadas ni del grupo mas grande en espera.\n";
       return;
     }
     if (!guardar(anterior, true, !promovidas.empty())) return;
-    cout << "[OK] Cupo de " << nombrePunto(punto) << " a las " << turno << ": "
+    cout << "[OK] Capacidad de " << nombrePunto(punto) << " a las " << turno << ": "
          << capacidad << " personas por fecha.\n";
     mostrarPromovidas(promovidas);
   }
@@ -255,10 +252,10 @@ private:
     }
     if (turnos.empty()) {
       cout << "[ERROR] El destino " << nombrePunto(punto)
-           << " no tiene cupos por turno.\n";
+           << " no tiene turnos con capacidad registrada.\n";
       return;
     }
-    cout << "Destino " << nombrePunto(punto) << ". Turnos con su cupo: "
+    cout << "Destino " << nombrePunto(punto) << ". Turnos con su capacidad: "
          << turnos << ".\n";
 
     string fecha;
@@ -269,7 +266,7 @@ private:
       return;
     }
     if (!pedir("Turno (HH:MM): ", turno) || agenda.capacidad(punto, turno) == -1) {
-      cout << "[ERROR] El destino no tiene cupo en ese turno.\n";
+      cout << "[ERROR] El destino no tiene capacidad registrada en ese turno.\n";
       return;
     }
     if (agenda.tieneReservaActiva(codigo, fecha, turno)) {
@@ -288,7 +285,7 @@ private:
     }
     int capacidad = agenda.capacidad(punto, turno);
     if (personas > capacidad) {
-      cout << "[ERROR] El grupo supera el cupo del turno (" << capacidad
+      cout << "[ERROR] El grupo supera la capacidad del turno (" << capacidad
            << " personas).\n";
       return;
     }
@@ -305,7 +302,7 @@ private:
            << cuposLibres(capacidad - agenda.ocupados(punto, fecha, turno))
            << " en ese turno.\n";
     } else {
-      cout << "[OK] El turno no tiene cupo libre para " << personas
+      cout << "[OK] El turno no tiene cupos libres para " << personas
            << " personas. La reserva " << creada.getCodigo()
            << " queda en espera en la posicion " << creada.getOrdenEspera()
            << ".\n";
@@ -363,7 +360,7 @@ private:
       hayCupos = true;
       const string punto = cupo.getPunto();
       const string turno = cupo.getTurno();
-      cout << "\n" << nombrePunto(punto) << ", turno " << turno << ", cupo "
+      cout << "\n" << nombrePunto(punto) << ", turno " << turno << ", capacidad "
            << cupo.getCapacidadMaxima() << "\n";
 
       vector<string> fechas;
@@ -392,7 +389,7 @@ private:
       }
     }
     if (!hayCupos) {
-      cout << "[ERROR] No hay cupos registrados"
+      cout << "[ERROR] No hay capacidades registradas"
            << (filtro.empty() ? "" : " para " + filtro) << ".\n";
     }
   }
@@ -407,7 +404,7 @@ public:
     string opcion;
     do {
       cout << "\n=== Reservas de cupos por turno FA03 ===\n"
-           << "1. Registrar o actualizar un cupo\n"
+           << "1. Registrar o actualizar la capacidad de un turno\n"
            << "2. Reservar un turno para una solicitud\n"
            << "3. Cancelar una reserva\n"
            << "4. Reporte de ocupacion\n"
@@ -424,6 +421,87 @@ public:
 };
 
 }  // namespace
+
+CargaFA03 armarCargaFA03(const vector<Cupo> &cuposLeidos,
+                         const vector<Reserva> &reservasLeidas,
+                         bool hayFilasMalFormadas, const vector<Punto> &puntos,
+                         const vector<Solicitud> &solicitudes) {
+  vector<string> errores;
+  bool descartes = hayFilasMalFormadas;
+
+  vector<Cupo> cupos;
+  for (const Cupo &cupo : cuposLeidos) {
+    int i = indicePunto(puntos, cupo.getPunto());
+    if (i == -1 || !admiteCupo(puntos[i].getTipo())) {
+      errores.push_back("Capacidad de " + cupo.getPunto() + " a las " + cupo.getTurno()
+                        + " descartada: el punto no es un atractivo ni un mirador.");
+      descartes = true;
+    } else {
+      cupos.push_back(cupo);
+    }
+  }
+
+  AgendaCupos soloCupos(cupos, {});
+  vector<Reserva> reservas;
+  vector<string> activas;  // solicitud, fecha y turno de cada reserva activa aceptada
+  for (const Reserva &reserva : reservasLeidas) {
+    string motivo = motivoReservaInvalida(reserva, solicitudes, soloCupos);
+    if (motivo.empty() && reserva.estaActiva()) {
+      string clave = reserva.getSolicitud() + " " + reserva.getFecha() + " " + reserva.getTurno();
+      if (find(activas.begin(), activas.end(), clave) != activas.end()) {
+        motivo = "la solicitud ya tiene otra reserva activa en esa fecha y ese turno";
+      } else {
+        activas.push_back(clave);
+      }
+    }
+    if (motivo.empty()) {
+      reservas.push_back(reserva);
+    } else {
+      errores.push_back("Reserva " + reserva.getCodigo() + " descartada: " + motivo + ".");
+      descartes = true;
+    }
+  }
+
+  AgendaCupos agenda(cupos, reservas);
+  for (const Reserva &reserva : agenda.getReservas()) {
+    if (reserva.estaConfirmada()
+        && agenda.ocupados(reserva.getPunto(), reserva.getFecha(), reserva.getTurno())
+               > agenda.capacidad(reserva.getPunto(), reserva.getTurno())) {
+      errores.push_back("El turno de " + reserva.getPunto() + " del " + reserva.getFecha()
+                        + " a las " + reserva.getTurno()
+                        + " tiene mas personas confirmadas que su capacidad.");
+      descartes = true;
+      break;
+    }
+  }
+
+  // En solo lectura la agenda queda como en los archivos, para que el reporte
+  // muestre lo mismo que reservas.csv.
+  vector<string> promovidas;
+  if (!descartes) promovidas = agenda.normalizar();
+  return CargaFA03{cupos, reservas, agenda, errores, promovidas, descartes};
+}
+
+GuardadoFA03 guardarCambioFA03(bool cupos, bool reservas,
+                               const function<bool()> &escribirCupos,
+                               const function<bool()> &escribirReservas,
+                               const function<bool()> &restaurarCupos) {
+  bool cuposGuardados = !cupos || escribirCupos();
+  bool reservasGuardadas = cuposGuardados && (!reservas || escribirReservas());
+  if (cuposGuardados && reservasGuardadas) return GuardadoFA03::Guardado;
+  // guardarCSV deja intacto el archivo que no logra escribir, asi que solo hay
+  // que restaurar cupos.csv cuando ya se guardo y falla reservas.csv.
+  if (cupos && cuposGuardados && !restaurarCupos()) return GuardadoFA03::SinRestaurar;
+  return GuardadoFA03::Revertido;
+}
+
+AgendaCupos agendaSegunGuardadoFA03(GuardadoFA03 resultado, const AgendaCupos &nueva,
+                                    const AgendaCupos &anterior) {
+  if (resultado == GuardadoFA03::Guardado) return nueva;
+  if (resultado == GuardadoFA03::Revertido) return anterior;
+  // cupos.csv quedo con la capacidad nueva y reservas.csv sin cambios.
+  return AgendaCupos(nueva.getCupos(), anterior.getReservas());
+}
 
 void ejecutarFA03(const ArchivosCSV &archivosCSV) {
   MenuReservas menu(archivosCSV);
