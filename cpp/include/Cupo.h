@@ -3,8 +3,8 @@
 
 #include <string>
 
-// FA03 - Autor: Jefferson Sanchez.
-// Capacidad maxima de un punto en un turno. Vale para todas las fechas.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Representa la capacidad de un punto por turno.
 class Cupo {
 private:
   std::string punto;

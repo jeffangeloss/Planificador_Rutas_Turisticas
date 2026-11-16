@@ -3,7 +3,6 @@
     leer_codigo/2
 ]).
 
-% Estas funciones deben importarse para recibir datos desde el menú de Prolog.
 leer_entrada(Mensaje, Texto) :-
     write(Mensaje),
     flush_output,

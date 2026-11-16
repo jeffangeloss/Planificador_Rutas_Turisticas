@@ -1,172 +1,64 @@
 # Módulo Prolog
 
-Este módulo lee los cuatro CSV compartidos y convierte sus filas en hechos de Prolog. Los archivos sólo se leen: no se modifican desde este módulo.
+Implementación lógica del sistema turístico. Convierte los CSV compartidos en
+hechos y permite consultar conectividad, atención y recomendaciones.
 
-## 1. Instalar SWI-Prolog
+## Ejecutar el programa
 
-1. Descargar SWI-Prolog desde su [página oficial](https://www.swi-prolog.org/Download.html).
-2. Ejecutar el instalador correspondiente al sistema operativo.
-3. Cerrar y volver a abrir PowerShell o VS Code.
-
-## 2. Elegir una forma de ejecución
-
-### Opción A: agregar SWI-Prolog al `PATH` (recomendada)
-
-En Windows:
-
-1. Buscar **Variables de entorno** desde el menú Inicio.
-2. Abrir **Editar las variables de entorno del sistema**.
-3. Entrar a **Variables de entorno**.
-4. Seleccionar `Path` en las variables de usuario y pulsar **Editar**.
-5. Agregar la carpeta `bin` de la instalación de SWI-Prolog.
-6. Guardar los cambios y reiniciar VS Code.
-
-Comprobar que el comando esté disponible:
-
-```powershell
-swipl --version
-```
-
-Desde la raíz de `paradigmas_turismo`, ejecutar el programa:
+Desde la raíz del repositorio:
 
 ```powershell
 swipl prolog/app/main.pl -- _datos
 ```
 
-### Opción B: ejecutar sin modificar el `PATH`
+El programa carga los datos y muestra el menú de funcionalidades de Prolog.
+SWI-Prolog debe estar disponible en el `PATH`; su instalación se explica en
+[`../INSTALACION.md`](../INSTALACION.md).
 
-Se puede usar directamente la ruta completa del ejecutable. En una instalación estándar de Windows:
+## Funcionalidades
 
-```powershell
-& "C:\Program Files\swipl\bin\swipl.exe" prolog/app/main.pl -- _datos
-```
+- **4.3.1 Lectura de CSV:** crea la base de conocimiento a partir de los archivos compartidos.
+- **4.3.2 Conexión directa:** comprueba si dos puntos tienen una conexión habilitada.
+- **4.3.3 Alcanzabilidad:** determina si un destino puede alcanzarse desde un origen.
+- **4.3.4 Ruta evitando un punto:** busca una ruta que no atraviese el punto indicado.
+- **4.3.5 Atención de solicitudes:** comprueba si una unidad puede atender una solicitud.
+- **4.3.6 Solicitudes inaccesibles:** lista solicitudes pendientes sin una ruta habilitada.
+- **FA01:** recomienda atractivos para un perfil y explica el resultado.
 
-Si SWI-Prolog se instaló en otra ubicación, se debe reemplazar la ruta anterior por la correspondiente.
+## Realizar consultas independientes
 
-## 3. Verificar la ejecución
-
-El resultado esperado es:
-
-```text
-Datos cargados correctamente.
-Puntos: 4
-Conexiones: 4
-Unidades: 4
-Solicitudes: 4
-```
-
-`main.pl` sólo inicia el programa: recibe la ruta `_datos`, llama a `cargar_datos/1` y muestra el número de hechos cargados.
-
-## 4. Realizar consultas manuales
-
-1. Desde la raíz del repositorio, entrar a la carpeta Prolog:
+Desde la raíz del repositorio, iniciar SWI-Prolog dentro de la carpeta del
+módulo:
 
 ```powershell
 cd prolog
-```
-
-2. Si `swipl` está configurado en el `PATH`, iniciar SWI-Prolog con:
-
-```powershell
 swipl
 ```
 
-Si no está configurado en el `PATH`, usar la ruta completa:
-
-```powershell
-& "C:\Program Files\swipl\bin\swipl.exe"
-```
-
-3. Cuando aparezca el prompt `?-`, cargar el código y los CSV:
+En el prompt de Prolog, cargar los módulos y los CSV:
 
 ```prolog
-[src/LecturaCSV].
+[src/LecturaCSV, src/Conectividad, src/Atencion_solicitudes, src/Solicitudes_inaccesibles].
 cargar_datos('../_datos').
 ```
 
-No se debe escribir manualmente `?-`; SWI-Prolog lo muestra automáticamente.
-
-## 5. Consultas básicas
-
-### Buscar un punto por su código
+Después se pueden realizar consultas como las siguientes:
 
 ```prolog
-punto('P002', Nombre, Tipo, Zona).
+conectado('P001', 'P002', Distancia).
+alcanzable('P001', 'P004').
+ruta_evitando('P001', 'P004', 'P003', Ruta).
+puede_atender('U001', 'S001').
+pedidos_inaccesibles(Pedidos).
 ```
 
-### Buscar un punto por código y comprobar que sea un atractivo
+Para consultar FA01, cargar sus datos por separado:
 
 ```prolog
-punto('P002', Nombre, atractivo, Zona).
+[src/Recomendador].
+cargar_recomendador('../_datos').
+recomendar('T001', Resultados).
 ```
 
-### Listar todos los atractivos
-
-```prolog
-punto(Codigo, Nombre, atractivo, Zona).
-```
-
-### Buscar una conexión por su código
-
-```prolog
-conexion('C001', Origen, Destino, DistanciaKm, TiempoMin, Estado).
-```
-
-### Listar las unidades disponibles
-
-```prolog
-unidad(Codigo, Tipo, Capacidad, CostoKm, disponible).
-```
-
-### Listar las solicitudes pendientes
-
-```prolog
-solicitud(Codigo, Origen, Destino, Cantidad, Prioridad, pendiente, Unidad).
-```
-
-### Buscar una solicitud por su código
-
-```prolog
-solicitud('S002', Origen, Destino, Cantidad, Prioridad, Estado, Unidad).
-```
-
-Si una consulta tiene varios resultados, presionar `;` para ver el siguiente. Presionar `Enter` para detener la búsqueda.
-
-Para salir de SWI-Prolog:
-
-```prolog
-halt.
-```
-
-## Actualización de la base de conocimiento
-
-El predicado `cargar_datos/1` realiza estos pasos:
-
-1. Elimina los hechos cargados anteriormente con `limpiar_datos/0`.
-2. Lee `puntos.csv` y crea hechos `punto/4`.
-3. Lee `conexiones.csv` y crea hechos `conexion/6`.
-4. Lee `unidades.csv` y crea hechos `unidad/5`.
-5. Lee `solicitudes.csv` y crea hechos `solicitud/7`.
-
-Esto permite volver a ejecutar `cargar_datos('../_datos').` después de cambiar un CSV sin duplicar información.
-
-## Ruta evitando un punto y solicitudes inaccesibles
-
-La opción 4.3.4 pide origen, destino y punto a evitar. Devuelve una ruta que
-usa conexiones habilitadas en ambos sentidos, sin repetir puntos. Si el punto
-evitado coincide con el origen o el destino, o no existe una ruta alternativa,
-informa que no hay solución.
-
-La opción 4.3.6 lista solo los pedidos pendientes cuyo destino no es
-alcanzable desde el origen. El predicado pedidos_inaccesibles/1 devuelve
-esa lista; las solicitudes asignadas y entregadas quedan fuera.
-
-## Recomendador FA01
-
-La opción FA01 lee `caracteristicas_puntos.csv`,
-`accesibilidad_conexiones.csv`, `perfiles_turista.csv`,
-`categorias_puntos.csv` e `intereses_turista.csv`, documentados en
-`_datos/README.md`. Categorías e intereses se guardan una por fila. Para cada
-lugar se explican los motivos de recomendación o descarte según intereses,
-accesibilidad, presencia de niños, horario y seguridad. Si el perfil requiere
-accesibilidad, se busca una ruta habilitada y accesible desde un hotel.
+Si una consulta tiene varios resultados, presionar `;` para mostrar el
+siguiente. Para salir, ejecutar `halt.`.

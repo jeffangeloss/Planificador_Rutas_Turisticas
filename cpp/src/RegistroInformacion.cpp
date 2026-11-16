@@ -1,3 +1,4 @@
+// 4.1.3 Registro de información con validaciones. Responsable: Melissa Ruíz.
 #include "RegistroInformacion.h"
 
 #include "Conexion.h"

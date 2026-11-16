@@ -1,3 +1,4 @@
+% 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
 :- module(lectura_csv, [
     cargar_datos/1,
     cargar_datos/2,

@@ -8,14 +8,12 @@
 #include <string>
 #include <vector>
 
-// FA03 - Autor: Jefferson Sanchez.
-// Reservas de cupos por turno con lista de espera (opcion 9 del menu).
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Ejecuta el menú de reservas, cupos y lista de espera.
 void ejecutarFA03(const ArchivosCSV &archivosCSV);
 
-// Agenda que FA03 arma al abrirse, a partir de las filas que ya leyeron
-// cargarCupos y cargarReservas. Descarta lo que no cumple las reglas de
-// _datos/README.md y deja FA03 en solo lectura si descarta algo o si un turno
-// tiene mas personas confirmadas que su capacidad.
+// Construye la agenda desde cupos.csv y reservas.csv.
+// Si descarta datos inválidos, deja FA03 en modo de solo lectura.
 struct CargaFA03 {
   std::vector<Cupo> cupos;              // capacidades que pasan la validacion
   std::vector<Reserva> reservas;        // reservas que pasan, sin normalizar

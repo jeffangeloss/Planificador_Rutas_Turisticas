@@ -1,9 +1,5 @@
-// FA03 - Autor: Jefferson Sanchez.
-// Pruebas de la agenda de cupos y de la lista de espera, sin entrada por
-// consola. Cubren la regla de promocion de la Propuesta (se confirma, en orden
-// de llegada, cada reserva en espera que cabe en el cupo libre, y la que no
-// cabe conserva su lugar), la lectura y escritura de cupos.csv y reservas.csv,
-// la validacion de la carga y el guardado con vuelta atras.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Prueba cupos, reservas, promociones y persistencia CSV.
 
 #include "AgendaCupos.h"
 #include "ArchivosCSV.h"

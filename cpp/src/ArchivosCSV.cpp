@@ -334,6 +334,8 @@ bool ArchivosCSV::archivoExiste(const string &nombre) const {
   return static_cast<bool>(archivo);
 }
 
+// 4.1.5 Generación de archivos CSV. Responsable: Jefferson Sanchez.
+// Guarda puntos y conexiones usando archivos temporales.
 namespace {
 
 template <typename EscribirFilas>
@@ -365,7 +367,6 @@ bool guardarCSV(const filesystem::path &destino, EscribirFilas escribirFilas) {
 
 } // namespace
 
-// 4.1.5 Generacion de archivos CSV. Responsable: Jefferson Sanchez.
 bool ArchivosCSV::guardarPuntos(
     const vector<Punto> &puntosActualizados) const {
   return guardarCSV(rutaArchivo("puntos.csv"),
@@ -379,7 +380,6 @@ bool ArchivosCSV::guardarPuntos(
   });
 }
 
-// 4.1.5 Guardado de conexiones. Responsable: Jefferson Sanchez.
 bool ArchivosCSV::guardarConexiones(
     const vector<Conexion> &conexionesActualizadas) const {
   return guardarCSV(rutaArchivo("conexiones.csv"),
@@ -539,9 +539,8 @@ bool ArchivosCSV::guardarPlanFA02(
          && archivoVisitantes.good();
 }
 
-// FA03 - Autor: Jefferson Sanchez.
-// Cupos por turno y reservas con lista de espera. Las escrituras usan
-// guardarCSV, asi que una falla no deja el archivo a medio escribir.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Lee y guarda cupos y reservas sin dejar archivos incompletos.
 
 bool ArchivosCSV::convertirEstadoReserva(const string &texto,
                                          EstadoReserva &estado) const {

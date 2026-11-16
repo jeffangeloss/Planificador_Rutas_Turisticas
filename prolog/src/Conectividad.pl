@@ -1,4 +1,4 @@
-% 4.3.2 Conexión directa habilitada en ambos sentidos.
+% 4.3.2 Regla de conexión directa. Responsable: Jefferson Sanchez.
 :- module(conectividad, [
     ejecutar_conexion/0,
     ejecutar_alcanzabilidad/0,
@@ -17,12 +17,10 @@ conectado(Origen, Destino, Distancia) :-
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Destino, Origen, Distancia, _, habilitada).
 
-% 4.3.3 Alcanzabilidad mediante conexiones habilitadas.
+% 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
 alcanzable(Origen, Destino) :-
     buscar_camino(Origen, Destino, [Origen]).
 
-% 4.3.4 Ruta por conexiones habilitadas que evita un punto.
-% La lista devuelta contiene el origen y el destino.
 % 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
 % Busca una ruta habilitada sin pasar por el punto excluido.
 ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
@@ -31,7 +29,6 @@ ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
     buscar_ruta(Origen, Destino, PuntoEvitado, [Origen], RutaInvertida),
     reverse(RutaInvertida, Ruta).
 
-% Auxiliar de 4.3.4. Responsable: Samantha Rodriguez.
 % Caso base: el destino es vecino del punto actual.
 buscar_ruta(Actual, Destino, _, Visitados, [Destino|Visitados]) :-
     conectado(Actual, Destino, _),
@@ -75,7 +72,6 @@ ejecutar_alcanzabilidad :-
     ;   format('[NO] ~w no es alcanzable desde ~w.~n', [Destino, Origen])
     ).
 
-% Interfaz de 4.3.4. Responsable: Samantha Rodriguez.
 % Solicita los códigos y muestra si se encontró la ruta.
 ejecutar_ruta_evitando :-
     leer_codigo('Codigo de origen: ', Origen),

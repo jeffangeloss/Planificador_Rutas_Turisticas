@@ -1,7 +1,5 @@
-% Grupo 4: ruta turística en Lima. Módulo lógico (FA01).
 % FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
-% Enunciado FA01: recomendar atractivos según el perfil y justificar cada recomendación.
-% FA01: recomendaciones justificadas por perfil.
+% Recomienda atractivos según el perfil y explica cada resultado.
 :- module(recomendador, [
     cargar_recomendador/1,
     recomendar/2,

@@ -1,3 +1,4 @@
+// 4.1.4 Gestión de estados. Responsable: Melissa Ruíz.
 #include "GestionEstados.h"
 
 #include "Conexion.h"

@@ -1,12 +1,5 @@
-// FA03 - Autor: Jefferson Sanchez.
-// Reservas de cupos por turno con lista de espera (opcion 9 del menu).
-// Registra la capacidad de cada atractivo o mirador por turno y reserva una
-// fecha y un turno para una solicitud cuyo destino es ese punto. La reserva
-// queda confirmada si cabe en los cupos libres y, si no, entra a la lista de
-// espera. Al cancelar una reserva confirmada o al subir la capacidad de un
-// turno, se confirma en orden de llegada cada reserva en espera que cabe, y la
-// que no cabe conserva su lugar. Cada cambio se guarda de inmediato en
-// cupos.csv o reservas.csv.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Gestiona cupos, reservas y lista de espera por turno.
 
 #include "FA03.h"
 

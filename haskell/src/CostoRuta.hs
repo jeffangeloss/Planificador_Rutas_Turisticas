@@ -1,4 +1,4 @@
--- 4.2.5 Distancia y tiempo total de una ruta.
+-- 4.2.5 Costo de una ruta. Responsable: Melissa Ruíz.
 module CostoRuta (costoRuta, ejecutarCostoRuta) where
 
 import Rutas (rutasPosibles)

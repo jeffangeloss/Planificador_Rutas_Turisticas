@@ -1,6 +1,5 @@
-// Grupo 4: ruta turística en Lima. Módulo imperativo (sección 4.1).
 // 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
-// Enunciado 4.1.6: consultar la información turística registrada en los CSV.
+// Consulta la información turística registrada en los CSV.
 
 #include "ConsultasBasicas.h"
 

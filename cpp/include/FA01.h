@@ -1,6 +1,5 @@
-// Grupo 4: ruta turística en Lima. Módulo imperativo (FA01).
 // FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
-// Enunciado FA01: registrar datos y coordinar el acceso al recomendador.
+// Registra los datos y coordina el acceso al recomendador.
 
 #ifndef FA01_H
 #define FA01_H

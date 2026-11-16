@@ -1,6 +1,5 @@
--- Grupo 4: ruta turistica en Lima. Modulo funcional (seccion 4.2).
--- 4.2.1 Lectura de los CSV. Responsable: Jefferson Sanchez.
--- Enunciado 4.2.1: leer conexiones.csv, unidades.csv y pedidos.csv (aqui, solicitudes.csv).
+-- 4.2.1 Lectura de archivos CSV. Responsable: Jefferson Sanchez.
+-- Lee conexiones, unidades y solicitudes desde los CSV compartidos.
 module LecturaCSV where
 
 import Data.Char (isSpace)

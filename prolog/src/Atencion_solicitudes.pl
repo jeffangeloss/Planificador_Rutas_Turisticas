@@ -1,4 +1,4 @@
-% 4.3.5 Atención de solicitudes según disponibilidad y capacidad.
+% 4.3.5 Regla de atención de solicitudes. Responsable: Melissa Ruíz.
 :- module(atencion_solicitudes, [
     ejecutar_atencion/0,
     puede_atender/2
