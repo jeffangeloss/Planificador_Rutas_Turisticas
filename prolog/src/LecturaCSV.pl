@@ -18,9 +18,11 @@
 :- dynamic unidad/5.
 :- dynamic solicitud/7.
 
+% Carga los datos sin devolver el resumen de registros.
 cargar_datos(CarpetaDatos) :-
     cargar_datos(CarpetaDatos, _).
 
+% Valida, reemplaza los hechos y devuelve las cantidades cargadas.
 cargar_datos(CarpetaDatos, Resumen) :-
     validar_archivos(CarpetaDatos),
     limpiar_datos,
@@ -30,12 +32,14 @@ cargar_datos(CarpetaDatos, Resumen) :-
     cargar_solicitudes(CarpetaDatos),
     contar_datos(Resumen).
 
+% Cuenta los hechos creados desde cada archivo base.
 contar_datos(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
     aggregate_all(count, punto(_, _, _, _), Puntos),
     aggregate_all(count, conexion(_, _, _, _, _, _), Conexiones),
     aggregate_all(count, unidad(_, _, _, _, _), Unidades),
     aggregate_all(count, solicitud(_, _, _, _, _, _, _), Solicitudes).
 
+% Comprueba que la carpeta y los cuatro CSV requeridos existan.
 validar_archivos(CarpetaDatos) :-
     (   exists_directory(CarpetaDatos)
     ->  validar_archivos_requeridos(CarpetaDatos, [
@@ -47,6 +51,7 @@ validar_archivos(CarpetaDatos) :-
     ;   throw(error(existence_error(directory, CarpetaDatos), cargar_datos/2))
     ).
 
+% Recorre la lista de archivos y reporta el primero que falte.
 validar_archivos_requeridos(_, []).
 validar_archivos_requeridos(CarpetaDatos, [Archivo|Resto]) :-
     directory_file_path(CarpetaDatos, Archivo, Ruta),
@@ -98,6 +103,7 @@ guardar_solicitud(fila(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, Uni
         Codigo, Origen, Destino, Cantidad, Prioridad, Estado, UnidadAsignada
     )).
 
+% Elimina los hechos anteriores antes de una nueva carga.
 limpiar_datos :-
     retractall(punto(_, _, _, _)),
     retractall(conexion(_, _, _, _, _, _)),

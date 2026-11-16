@@ -7,11 +7,21 @@
 :- use_module('LecturaCSV', [unidad/5, solicitud/7]).
 :- use_module('entradasMenu', [leer_codigo/2]).
 
+% Obtiene la capacidad de una unidad disponible.
+unidad_disponible(CodigoUnidad, Capacidad) :-
+    unidad(CodigoUnidad, _, Capacidad, _, disponible).
+
+% Obtiene la cantidad de turistas de una solicitud pendiente.
+solicitud_pendiente(CodigoSolicitud, CantidadTuristas) :-
+    solicitud(CodigoSolicitud, _, _, CantidadTuristas, _, pendiente, _).
+
+% Comprueba disponibilidad y capacidad suficiente para la solicitud.
 puede_atender(CodigoUnidad, CodigoSolicitud) :-
-    unidad(CodigoUnidad, _, Capacidad, _, disponible),
-    solicitud(CodigoSolicitud, _, _, CantidadTuristas, _, pendiente, _),
+    unidad_disponible(CodigoUnidad, Capacidad),
+    solicitud_pendiente(CodigoSolicitud, CantidadTuristas),
     Capacidad >= CantidadTuristas.
 
+% Solicita ambos códigos y presenta el resultado de la regla.
 ejecutar_atencion :-
     leer_codigo('Codigo de unidad: ', CodigoUnidad),
     leer_codigo('Codigo de solicitud: ', CodigoSolicitud),
