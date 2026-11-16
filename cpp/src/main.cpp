@@ -1,7 +1,5 @@
-// Grupo 4: ruta turística en Lima. Módulo imperativo (sección 4.1).
 // 4.1.1 Menú principal. Responsable: Samantha Rodriguez.
-// Este archivo integra el flujo general y delega cada opción a su módulo
-// correspondiente.
+// Integra el menú y delega cada opción a su módulo.
 
 #include "ArchivosCSV.h"
 #include "ConsultasBasicas.h"
@@ -25,6 +23,7 @@ public:
       : carpetaDatos(carpetaDatos), archivosCSV(carpetaDatos) {}
 
   void ejecutar() {
+    // 4.1.2 Carga inicial. Responsable: Jefferson Sanchez.
     archivosCSV.cargarDatosIniciales();
     string opcion;
     do {
@@ -46,8 +45,10 @@ public:
       }
 
       if (opcion == "1") {
+        // 4.1.3 Registro de información con validaciones. Responsable: Melissa Ruíz.
         ejecutarRegistroInformacion(archivosCSV);
       } else if (opcion == "2") {
+        // 4.1.4 Gestión de estados. Responsable: Melissa Ruíz.
         ejecutarGestionEstados(archivosCSV);
       } else if (opcion == "3") {
         // 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
@@ -60,12 +61,14 @@ public:
       } else if (opcion == "6") {
         abrirProlog();
       } else if (opcion == "7") {
+        // FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
         ejecutarFA01(carpetaDatos);
       } else if (opcion == "8") {
+        // FA02 Selección de atractivos dentro de un presupuesto. Responsable: Melissa Ruíz.
         ejecutarFA02(carpetaDatos);
         archivosCSV.actualizarDatos();
       } else if (opcion == "9") {
-        // FA03 - Autor: Jefferson Sanchez.
+        // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
         ejecutarFA03(archivosCSV);
       } else if (opcion == "0") {
         cout << "Programa finalizado.\n";

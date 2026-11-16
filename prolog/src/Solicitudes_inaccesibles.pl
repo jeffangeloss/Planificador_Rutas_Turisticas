@@ -1,6 +1,5 @@
-% Grupo 4: ruta turística en Lima. Módulo lógico (sección 4.3).
-% 4.3.6 Regla de pedidos inaccesibles. Responsable: Samantha Rodriguez.
-% Devuelve pedidos pendientes cuyo destino no es alcanzable desde el origen.
+% 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
+% Devuelve solicitudes pendientes cuyo destino no es alcanzable.
 :- module(solicitudes_inaccesibles, [
     ejecutar_pedidos_inaccesibles/0,
     pedidos_inaccesibles/1

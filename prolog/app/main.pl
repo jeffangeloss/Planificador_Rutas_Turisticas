@@ -19,6 +19,7 @@ main :-
 
 ejecutar_carga(CarpetaDatos) :-
     format('Cargando archivos desde: ~w~n~n', [CarpetaDatos]),
+    % 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
     catch(
         ( cargar_datos(CarpetaDatos, Resumen),
           mostrar_resumen(Resumen),
@@ -70,21 +71,27 @@ mostrar_menu :-
     writeln('6. [FA01] Obtener recomendaciones segun perfil'),
     writeln('0. Volver al menu de C++').
 
+% 4.3.2 Regla de conexión directa. Responsable: Jefferson Sanchez.
 ejecutar_opcion("1") :-
     ejecutar_conexion,
     menu_principal.
+% 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
 ejecutar_opcion("2") :-
     ejecutar_alcanzabilidad,
     menu_principal.
+% 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
 ejecutar_opcion("3") :-
     ejecutar_ruta_evitando,
     menu_principal.
+% 4.3.5 Regla de atención de solicitudes. Responsable: Melissa Ruíz.
 ejecutar_opcion("4") :-
     ejecutar_atencion,
     menu_principal.
+% 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
 ejecutar_opcion("5") :-
     ejecutar_pedidos_inaccesibles,
     menu_principal.
+% FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
 ejecutar_opcion("6") :-
     (   fa01_cargado
     ->  ejecutar_recomendador

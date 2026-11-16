@@ -85,12 +85,13 @@ public:
   bool guardarPlanFA02(const std::vector<Unidad> &nuevasUnidades,
                        const std::vector<Solicitud> &nuevasSolicitudes,
                        const std::vector<Visitante> &visitantes) const;
+  // 4.1.5 Generación de archivos CSV. Responsable: Jefferson Sanchez.
   bool guardarPuntos(const std::vector<Punto> &puntosActualizados) const;
   bool guardarConexiones(
       const std::vector<Conexion> &conexionesActualizadas) const;
 
-  // FA03 - Autor: Jefferson Sanchez. Cupos por turno y reservas con lista de
-  // espera; solo C++ lee y escribe estos dos archivos.
+  // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+  // Lee y guarda cupos y reservas en sus archivos CSV.
   std::vector<Cupo> cargarCupos() const;
   std::vector<Reserva> cargarReservas() const;
   bool guardarCupos(const std::vector<Cupo> &cupos) const;

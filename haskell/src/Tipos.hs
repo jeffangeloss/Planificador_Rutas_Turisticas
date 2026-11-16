@@ -1,4 +1,4 @@
--- 4.2.2 Tipos compartidos por los modulos funcionales.
+-- 4.2.2 Definición de tipos. Responsable: Jefferson Sanchez.
 module Tipos where
 
 data TipoPunto = Agencia | Hotel | Atractivo | Mirador | EspacioPublico deriving (Show, Eq)

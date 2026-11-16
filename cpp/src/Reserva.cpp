@@ -4,7 +4,7 @@
 #include <cctype>
 #include <sstream>
 
-// FA03 - Autor: Jefferson Sanchez.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
 Reserva::Reserva()
     : personas(0), estado(EstadoReserva::Cancelada), ordenEspera(0) {}

@@ -23,8 +23,11 @@ mostrarMenu = do
   putStrLn "Opcion:"
 
 ejecutarOpcion :: String -> [Conexion] -> [Unidad] -> [Solicitud] -> IO ()
+-- 4.2.3 Función de vecinos. Responsable: Melissa Ruíz.
 ejecutarOpcion "1" conexiones _ _ = ejecutarVecinos conexiones
+-- 4.2.4 Rutas posibles. Responsable: Melissa Ruíz.
 ejecutarOpcion "2" conexiones _ _ = ejecutarRutas conexiones
+-- 4.2.5 Costo de una ruta. Responsable: Melissa Ruíz.
 ejecutarOpcion "3" conexiones _ _ = ejecutarCostoRuta conexiones
 -- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
 ejecutarOpcion "4" _ unidades solicitudes = ejecutarReporteSolicitudes unidades solicitudes
@@ -55,7 +58,7 @@ iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes = do
     (Just conexiones, Just unidades, Just solicitudes) -> menuPrincipal conexiones unidades solicitudes
     _ -> putStrLn "[ERROR] Corrige los archivos indicados y vuelve a abrir el modulo."
 
--- 4.2.1 Lectura de conexiones.csv, unidades.csv y solicitudes.csv. Responsable: Jefferson Sanchez.
+-- 4.2.1 Lectura de archivos CSV. Responsable: Jefferson Sanchez.
 iniciarMenu :: FilePath -> IO ()
 iniciarMenu carpetaDatos = do
   resultadoConexiones <- leerConexiones (carpetaDatos ++ "/conexiones.csv")
@@ -63,11 +66,12 @@ iniciarMenu carpetaDatos = do
   resultadoSolicitudes <- leerSolicitudes (carpetaDatos ++ "/solicitudes.csv")
   iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes
 
--- 4.2.7 Resultado esperado: integración del programa. Responsable: Samantha Rodriguez.
+-- 4.2.7 Programa principal y resultado esperado. Responsable: Samantha Rodriguez.
 main :: IO ()
 main = do
   argumentos <- getArgs
   case argumentos of
+    -- FA02 Selección de atractivos dentro de un presupuesto. Responsable: Melissa Ruíz.
     carpeta : "--fa02" : generales : estudiantes : ninos : presupuesto : tiempo : _ ->
       ejecutarSeleccionAtractivos carpeta generales estudiantes ninos presupuesto tiempo
     carpeta : _ -> iniciarMenu carpeta

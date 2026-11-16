@@ -1,6 +1,6 @@
 #include "Cupo.h"
 
-// FA03 - Autor: Jefferson Sanchez.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
 Cupo::Cupo(std::string punto, std::string turno, int capacidadMaxima) {
   this->punto = punto;

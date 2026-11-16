@@ -1,4 +1,4 @@
--- 4.2.4 Rutas posibles sin repetir puntos.
+-- 4.2.4 Rutas posibles. Responsable: Melissa Ruíz.
 module Rutas (rutasPosibles, ejecutarRutas) where
 
 import Tipos (Conexion)

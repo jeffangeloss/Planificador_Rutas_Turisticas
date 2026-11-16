@@ -1,4 +1,3 @@
--- Grupo 4: ruta turística en Lima. Módulo funcional (sección 4.2).
 -- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
 module ReporteSolicitudes (reporteSolicitudes, ejecutarReporteSolicitudes) where
 

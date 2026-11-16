@@ -8,7 +8,7 @@
 
 using namespace std;
 
-// FA03 - Autor: Jefferson Sanchez.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
 AgendaCupos::AgendaCupos(vector<Cupo> cupos, vector<Reserva> reservas)
     : cupos(std::move(cupos)), reservas(std::move(reservas)) {}

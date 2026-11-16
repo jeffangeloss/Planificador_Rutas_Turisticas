@@ -1,9 +1,8 @@
--- FA02 - Autor: Melissa Ruíz. Cotizacion de un plan turistico desde la agencia P000.
+-- FA02 Selección de atractivos dentro de un presupuesto. Responsable: Melissa Ruíz.
 module SeleccionAtractivos (ejecutarSeleccionAtractivos) where
 
 import CostoRuta (costoRuta)
 import LecturaCSV (leerConexiones, leerEntradas, leerPuntos, leerUnidades)
-import System.IO.Error (catchIOError)
 import Text.Printf (printf)
 import Text.Read (readMaybe)
 import Tipos
@@ -18,19 +17,6 @@ import Tipos
 import Vecinos (vecinos)
 
 data AlternativaFA02 = AlternativaFA02 [String] TipoUnidad Int Double Int
-
-manejarError :: IOError -> IO (Maybe [a])
-manejarError _ = return Nothing
-
-leerSeguro :: IO (Maybe [a]) -> IO (Maybe [a])
-leerSeguro accion = catchIOError (comprobarResultado accion) manejarError
-
-comprobarResultado :: IO (Maybe [a]) -> IO (Maybe [a])
-comprobarResultado accion = do
-  resultado <- accion
-  case resultado of
-    Nothing -> return Nothing
-    Just datos -> length datos `seq` return (Just datos)
 
 buscarPunto :: String -> [Punto] -> Maybe Punto
 buscarPunto _ [] = Nothing
@@ -250,23 +236,17 @@ procesarDatos _ _ _ _ _ _ _ _ Nothing = mostrarError "No se pudo leer entradas.c
 procesarDatos generales estudiantes ninos presupuesto tiempoMaximo (Just puntos) (Just conexiones) (Just unidades) (Just entradas) =
   generarAlternativas generales estudiantes ninos presupuesto tiempoMaximo puntos conexiones unidades entradas
 
-leerEntero :: String -> Maybe Int
-leerEntero = readMaybe
-
-leerDecimal :: String -> Maybe Double
-leerDecimal = readMaybe
-
 ejecutarSeleccionAtractivos :: FilePath -> String -> String -> String -> String -> String -> IO ()
 ejecutarSeleccionAtractivos carpetaDatos generalesTexto estudiantesTexto ninosTexto presupuestoTexto tiempoTexto =
-  case (leerEntero generalesTexto, leerEntero estudiantesTexto, leerEntero ninosTexto, leerDecimal presupuestoTexto, leerEntero tiempoTexto) of
+  case (readMaybe generalesTexto, readMaybe estudiantesTexto, readMaybe ninosTexto, readMaybe presupuestoTexto, readMaybe tiempoTexto) of
     (Just generales, Just estudiantes, Just ninos, Just presupuesto, Just tiempoMaximo)
       | generales >= 0 && estudiantes >= 0 && ninos >= 0
           && generales + estudiantes + ninos > 0
           && presupuesto > 0
           && tiempoMaximo > 0 -> do
-          puntos <- leerSeguro (leerPuntos (carpetaDatos ++ "/puntos.csv"))
-          conexiones <- leerSeguro (leerConexiones (carpetaDatos ++ "/conexiones.csv"))
-          unidades <- leerSeguro (leerUnidades (carpetaDatos ++ "/unidades.csv"))
-          entradas <- leerSeguro (leerEntradas (carpetaDatos ++ "/entradas.csv"))
+          puntos <- leerPuntos (carpetaDatos ++ "/puntos.csv")
+          conexiones <- leerConexiones (carpetaDatos ++ "/conexiones.csv")
+          unidades <- leerUnidades (carpetaDatos ++ "/unidades.csv")
+          entradas <- leerEntradas (carpetaDatos ++ "/entradas.csv")
           procesarDatos generales estudiantes ninos presupuesto tiempoMaximo puntos conexiones unidades entradas
     _ -> mostrarError "Revisa las cantidades, el presupuesto y el tiempo ingresados."

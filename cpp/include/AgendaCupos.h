@@ -7,17 +7,8 @@
 #include <string>
 #include <vector>
 
-// FA03 - Autor: Jefferson Sanchez.
-// Agenda de cupos con clave (punto, fecha, turno) y lista de espera.
-// Politica de promocion, la de la Propuesta: cuando se liberan cupos, se
-// recorre la espera en orden de llegada y se confirma cada reserva que cabe en
-// los cupos libres; la que no cabe conserva su lugar. Una sola liberacion
-// puede confirmar varias reservas. Se prefiere a esperar a que quepa la primera
-// reserva de la lista, que dejaria sin usar los cupos libres cuando el primer
-// grupo no cabe y otro posterior si. El costo es que un grupo grande puede
-// seguir en espera mientras se confirman grupos mas pequenos que llegan
-// despues. La cola se reconstruye desde reservas.csv, ordenada por
-// orden_espera.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Controla la capacidad y promoción de reservas en espera.
 class AgendaCupos {
 private:
   std::vector<Cupo> cupos;

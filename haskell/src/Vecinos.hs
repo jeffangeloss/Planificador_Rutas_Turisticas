@@ -1,4 +1,4 @@
--- 4.2.3 Función de vecinos.
+-- 4.2.3 Función de vecinos. Responsable: Melissa Ruíz.
 module Vecinos (vecinos, ejecutarVecinos) where
 
 import Tipos (Conexion (..), EstadoConexion (Habilitada))

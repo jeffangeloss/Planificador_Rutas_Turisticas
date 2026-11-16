@@ -5,9 +5,8 @@
 
 #include <string>
 
-// FA03 - Autor: Jefferson Sanchez.
-// Reserva de una solicitud para un punto, una fecha y un turno. Una reserva en
-// espera guarda su posicion en la lista; confirmada o cancelada guarda 0.
+// FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+// Representa una reserva confirmada, en espera o cancelada.
 class Reserva {
 private:
   std::string codigo;
