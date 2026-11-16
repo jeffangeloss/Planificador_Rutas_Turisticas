@@ -3,6 +3,8 @@
 
 #include "AgendaCupos.h"
 #include "ArchivosCSV.h"
+#include "Punto.h"
+#include "Solicitud.h"
 
 #include <functional>
 #include <string>
@@ -11,6 +13,13 @@
 // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 // Ejecuta el menú de reservas, cupos y lista de espera.
 void ejecutarFA03(const ArchivosCSV &archivosCSV);
+
+// Ayudantes de FA03 que usan el submenu y la carga.
+// Los indices devuelven la posicion en el vector, o -1 si el codigo no existe.
+int indicePunto(const std::vector<Punto> &puntos, const std::string &codigo);
+int indiceSolicitud(const std::vector<Solicitud> &solicitudes,
+                    const std::string &codigo);
+bool admiteCupo(TipoPunto tipo);  // solo atractivos y miradores tienen cupos
 
 // Construye la agenda desde cupos.csv y reservas.csv.
 // Si descarta datos inválidos, deja FA03 en modo de solo lectura.

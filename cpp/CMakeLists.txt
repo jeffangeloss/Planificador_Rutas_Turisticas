@@ -23,6 +23,7 @@ add_library(turismo_lib
     src/Reserva.cpp
     src/AgendaCupos.cpp
     src/FA03.cpp
+    src/MenuReservas.cpp
 )
 
 target_include_directories(turismo_lib PUBLIC include)
