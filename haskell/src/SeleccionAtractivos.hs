@@ -1,4 +1,4 @@
--- FA02: cotizacion de un plan turistico desde la agencia P000.
+-- FA02 - Autor: Melissa Ruíz. Cotizacion de un plan turistico desde la agencia P000.
 module SeleccionAtractivos (ejecutarSeleccionAtractivos) where
 
 import CostoRuta (costoRuta)
@@ -130,13 +130,18 @@ crearAlternativa ruta (Unidad _ tipo _ costoKm _) conexiones puntos entradas gen
         Just (costoEntradas, tiempoVisitas) ->
           validarAlternativa ruta tipo costoEntradas distancia costoKm tiempoRuta tiempoVisitas presupuesto tiempoMaximo
 
+-- Un grupo a pie avanza a 3,6 km/h (Vega-Huerta et al., 2026); las demas unidades usan tiempo_min.
+tiempoTraslado :: TipoUnidad -> Double -> Int -> Int
+tiempoTraslado GuiaPeatonal distancia _ = round (distancia / 3.6 * 60)
+tiempoTraslado _ _ tiempoRuta = tiempoRuta
+
 validarAlternativa :: [String] -> TipoUnidad -> Double -> Double -> Double -> Int -> Int -> Double -> Int -> Maybe AlternativaFA02
 validarAlternativa ruta tipo costoEntradas distancia costoKm tiempoRuta tiempoVisitas presupuesto tiempoMaximo =
   crearAlternativaValida
     ruta
     tipo
     (costoEntradas + distancia * costoKm)
-    (tiempoRuta + tiempoVisitas)
+    (tiempoTraslado tipo distancia tiempoRuta + tiempoVisitas)
     presupuesto
     tiempoMaximo
 

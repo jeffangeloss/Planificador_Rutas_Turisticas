@@ -56,6 +56,12 @@ de 14,9 km/h al calcularla con la serie semanal del TomTom Traffic Index 2025.
 Esta velocidad queda entre los 13,9 km/h de la hora punta de la mañana y los
 17,2 km/h del promedio anual que publica el mismo índice.
 
+La guía peatonal de FA02 no usa `tiempo_min`, porque este valor corresponde a un
+vehículo. FA02 calcula su traslado como `distancia_km` ÷ 3,6 km/h × 60,
+redondeado al minuto, con la velocidad de caminata que Vega-Huerta et al.
+(2026) usan para rutas peatonales en el Parque de las Leyendas, y la aplica
+como aproximación a la distancia en auto de OSRM.
+
 ## `unidades.csv`
 
 Registra las unidades disponibles para atender solicitudes.
@@ -248,6 +254,8 @@ cambian el estado de las solicitudes ni de las unidades.
   License (ODbL).
 - Velocidad del tráfico, TomTom Traffic Index 2025, página de Lima,
   https://www.tomtom.com/traffic-index/lima-traffic/.
+- Velocidad a pie de FA02, Vega-Huerta et al. (2026), Revista Portuguesa de
+  Estudos Regionais, 75, 117-137, https://doi.org/10.59072/rper.vi75.857.
 - Huaca Pucllana, Ministerio de Cultura,
   https://museos.cultura.pe/museos/museo-de-sitio-pucllana.
 - Museo Larco, tarifario del museo,
