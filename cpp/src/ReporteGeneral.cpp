@@ -1,5 +1,5 @@
-// 4.1.7 Reporte general. Responsable: Samantha Rodriguez.
-// Resume los totales y estados de los datos del sistema.
+// 4.1.7 reporte general. responsable: samantha rodriguez.
+// resume los totales y estados de los datos del sistema.
 
 #include "ReporteGeneral.h"
 
@@ -11,9 +11,25 @@
 #include "Unidad.h"
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
+
+namespace {
+
+// cuenta cuantas solicitudes estan asignadas a una unidad.
+int contarSolicitudesUnidad(const vector<Solicitud> &solicitudes,
+                            const string &codigoUnidad) {
+  int cantidad = 0;
+  for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
+    if (solicitudes[i].getUnidadAsignada() == codigoUnidad)
+      cantidad++;
+  }
+  return cantidad;
+}
+
+} // namespace
 
 // cuenta registros y muestra el resumen general.
 void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
@@ -43,13 +59,13 @@ void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
     if (solicitudes[i].getEstado() == EstadoSolicitud::Entregada) entregadas++;
   }
 
+  // busca la mayor cantidad de solicitudes asignadas a una unidad.
   int maximoPedidos = 0;
   for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
-    int pedidosUnidad = 0;
-    for (int j = 0; j < static_cast<int>(solicitudes.size()); ++j)
-      if (solicitudes[j].getUnidadAsignada() == unidades[i].getCodigo())
-        pedidosUnidad++;
-    if (pedidosUnidad > maximoPedidos) maximoPedidos = pedidosUnidad;
+    int pedidosUnidad =
+        contarSolicitudesUnidad(solicitudes, unidades[i].getCodigo());
+    if (pedidosUnidad > maximoPedidos)
+      maximoPedidos = pedidosUnidad;
   }
   cout << "\n=== Reporte general ===\n"
        << "Puntos: " << puntos.size() << "\n"
@@ -65,11 +81,10 @@ void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
     cout << "ninguna (0 pedidos)\n";
   } else {
     bool primera = true;
+    // muestra todas las unidades empatadas con el maximo.
     for (int i = 0; i < static_cast<int>(unidades.size()); ++i) {
-      int pedidosUnidad = 0;
-      for (int j = 0; j < static_cast<int>(solicitudes.size()); ++j)
-        if (solicitudes[j].getUnidadAsignada() == unidades[i].getCodigo())
-          pedidosUnidad++;
+      int pedidosUnidad =
+          contarSolicitudesUnidad(solicitudes, unidades[i].getCodigo());
       if (pedidosUnidad == maximoPedidos) {
         if (!primera) cout << ", ";
         cout << unidades[i].getCodigo() << " (" << pedidosUnidad << " pedidos)";

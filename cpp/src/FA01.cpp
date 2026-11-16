@@ -1,5 +1,5 @@
-// FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
-// Registra los datos y coordina el acceso al recomendador.
+// fa01 recomendador explicable de atractivos por perfil. responsable: samantha rodriguez.
+// registra los datos y coordina el acceso al recomendador.
 
 #include "FA01.h"
 
@@ -260,6 +260,7 @@ private:
     return intereses;
   }
 
+  // muestra una lista o avisa cuando esta vacia.
   void mostrarValores(const string &titulo,
                      const vector<string> &valores) const {
     cout << titulo << "\n";
@@ -333,6 +334,7 @@ private:
     return codigo;
   }
 
+  // pide un codigo existente y permite cancelar con cero.
   string leerCodigoExistente(const string &archivo,
                              const string &mensaje) const {
     while (true) {
@@ -539,28 +541,40 @@ private:
   }
 public:
   // guarda la carpeta donde se encuentran los csv de fa01.
-  explicit RegistroFA01(const string &rutaDatos) : carpetaDatos(rutaDatos) {}
+  RegistroFA01(const string &rutaDatos) : carpetaDatos(rutaDatos) {}
 
   // muestra las opciones de registro y atiende la seleccion.
   void ejecutar() {
-    while (true) {
+    string opcion;
+    do {
       cout << "\n=== Datos para el recomendador FA01 ===\n"
            << "1. Crear perfil turistico e intereses\n"
            << "2. Configurar caracteristicas y categorias de un punto\n"
            << "3. Configurar accesibilidad de una conexion\n"
            << "0. Volver\n";
-      string opcion = leerTexto("Opcion: ");
-      if (opcion == "1")
+      opcion = leerTexto("Opcion: ");
+      int numeroOpcion = -1;
+      if (opcion.size() == 1 && opcion[0] >= '0' && opcion[0] <= '9')
+        numeroOpcion = opcion[0] - '0';
+
+      // selecciona el tipo de dato que se va a registrar.
+      switch (numeroOpcion) {
+      case 1:
         registrarPerfil();
-      else if (opcion == "2")
-        registrarCaracteristicasPunto();
-      else if (opcion == "3")
-        registrarAccesibilidadConexion();
-      else if (opcion != "0")
-        cout << "Opcion invalida.\n";
-      if (opcion == "0")
         break;
-    }
+      case 2:
+        registrarCaracteristicasPunto();
+        break;
+      case 3:
+        registrarAccesibilidadConexion();
+        break;
+      case 0:
+        break;
+      default:
+        cout << "Opcion invalida.\n";
+        break;
+      }
+    } while (opcion != "0");
   }
 };
 

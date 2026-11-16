@@ -1,5 +1,5 @@
-// 4.1.1 Menú principal. Responsable: Samantha Rodriguez.
-// Integra el menú y delega cada opción a su módulo.
+// 4.1.1 menu principal. responsable: samantha rodriguez.
+// integra el menu y delega cada opcion a su modulo.
 
 #include "ArchivosCSV.h"
 #include "ConsultasBasicas.h"
@@ -19,12 +19,12 @@ using namespace std;
 
 class SistemaTurismo {
 public:
-  explicit SistemaTurismo(const string &carpetaDatos)
+  SistemaTurismo(const string &carpetaDatos)
       : carpetaDatos(carpetaDatos), archivosCSV(carpetaDatos) {}
 
   // muestra el menu principal y deriva cada opcion.
   void ejecutar() {
-    // 4.1.2 Carga inicial. Responsable: Jefferson Sanchez.
+    // 4.1.2 carga inicial. responsable: jefferson sanchez.
     archivosCSV.cargarDatosIniciales();
     string opcion;
     do {
@@ -45,36 +45,54 @@ public:
         break;
       }
 
-      if (opcion == "1") {
-        // 4.1.3 Registro de información con validaciones. Responsable: Melissa Ruíz.
+      // convierte la opcion de un solo digito para usar el menu switch.
+      int numeroOpcion = -1;
+      if (opcion.size() == 1 && opcion[0] >= '0' && opcion[0] <= '9')
+        numeroOpcion = opcion[0] - '0';
+
+      // deriva cada opcion a la funcionalidad correspondiente.
+      switch (numeroOpcion) {
+      case 1:
+        // 4.1.3 registro de informacion con validaciones. responsable: melissa ruiz.
         ejecutarRegistroInformacion(archivosCSV);
-      } else if (opcion == "2") {
-        // 4.1.4 Gestión de estados. Responsable: Melissa Ruíz.
+        break;
+      case 2:
+        // 4.1.4 gestion de estados. responsable: melissa ruiz.
         ejecutarGestionEstados(archivosCSV);
-      } else if (opcion == "3") {
-        // 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
+        break;
+      case 3:
+        // 4.1.6 consultas basicas. responsable: samantha rodriguez.
         ejecutarConsultasBasicas(archivosCSV);
-      } else if (opcion == "4") {
-        // 4.1.7 Reporte general. Responsable: Samantha Rodriguez.
+        break;
+      case 4:
+        // 4.1.7 reporte general. responsable: samantha rodriguez.
         mostrarReporteGeneral(archivosCSV);
-      } else if (opcion == "5") {
+        break;
+      case 5:
         abrirHaskell();
-      } else if (opcion == "6") {
+        break;
+      case 6:
         abrirProlog();
-      } else if (opcion == "7") {
-        // FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
+        break;
+      case 7:
+        // fa01 registro de datos del recomendador. responsable: samantha rodriguez.
         ejecutarFA01(carpetaDatos);
-      } else if (opcion == "8") {
-        // FA02 Selección de atractivos dentro de un presupuesto. Responsable: Melissa Ruíz.
+        break;
+      case 8:
+        // fa02 seleccion de atractivos dentro de un presupuesto.
         ejecutarFA02(carpetaDatos);
         archivosCSV.actualizarDatos();
-      } else if (opcion == "9") {
-        // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
+        break;
+      case 9:
+        // fa03 reservas de cupos por turno con lista de espera.
         ejecutarFA03(archivosCSV);
-      } else if (opcion == "0") {
+        break;
+      case 0:
         cout << "Programa finalizado.\n";
-      } else {
+        break;
+      default:
         cout << "Opcion invalida.\n";
+        break;
       }
     } while (opcion != "0");
   }

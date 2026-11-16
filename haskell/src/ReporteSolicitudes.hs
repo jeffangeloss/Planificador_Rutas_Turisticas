@@ -1,4 +1,4 @@
--- 4.2.6 Reporte de solicitudes. Responsable: Samantha Rodriguez.
+-- 4.2.6 reporte de solicitudes. responsable: samantha rodriguez.
 module ReporteSolicitudes (reporteSolicitudes, ejecutarReporteSolicitudes) where
 
 import Tipos (EstadoSolicitud (..), Prioridad (..), Solicitud (..), Unidad (..))

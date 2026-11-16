@@ -1,5 +1,5 @@
-% 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
-% Devuelve solicitudes pendientes cuyo destino no es alcanzable.
+% 4.3.6 regla de solicitudes inaccesibles. responsable: samantha rodriguez.
+% devuelve solicitudes pendientes cuyo destino no es alcanzable.
 :- module(solicitudes_inaccesibles, [
     ejecutar_pedidos_inaccesibles/0,
     pedidos_inaccesibles/1

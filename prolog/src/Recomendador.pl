@@ -1,5 +1,5 @@
-% FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
-% Recomienda atractivos según el perfil y explica cada resultado.
+% fa01 recomendador explicable de atractivos por perfil. responsable: samantha rodriguez.
+% recomienda atractivos segun el perfil y explica cada resultado.
 :- module(recomendador, [
     cargar_recomendador/1,
     recomendar/2,
@@ -10,6 +10,7 @@
 :- use_module('LecturaCSV', [punto/4, conexion/6]).
 :- use_module('entradasMenu', [leer_codigo/2]).
 
+% dynamic permite agregar hechos durante la ejecucion al leer los csv.
 :- dynamic caracteristica_punto/7.
 :- dynamic accesibilidad_conexion/2.
 :- dynamic perfil_turista/4.
@@ -51,16 +52,29 @@ leer_csv(CarpetaDatos, Nombre, Filas) :-
 % carga las caracteristicas registradas para los puntos.
 cargar_caracteristicas(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'caracteristicas_puntos.csv', Filas),
-    maplist(guardar_caracteristica, Filas).
+    guardar_caracteristicas(Filas).
+
+% guarda cada fila y continua con las filas restantes.
+guardar_caracteristicas([]).
+guardar_caracteristicas([Fila|Resto]) :-
+    guardar_caracteristica(Fila),
+    guardar_caracteristicas(Resto).
 
 % guarda una caracteristica como hecho de prolog.
+% assertz agrega al final un hecho leido del csv.
 guardar_caracteristica(fila(Codigo, Movilidad, Ninos, Dia, Noche, Inicio, Fin)) :-
     assertz(caracteristica_punto(Codigo, Movilidad, Ninos, Dia, Noche, Inicio, Fin)).
 
 % carga la accesibilidad de las conexiones.
 cargar_accesibilidad(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'accesibilidad_conexiones.csv', Filas),
-    maplist(guardar_accesibilidad, Filas).
+    guardar_accesibilidades(Filas).
+
+% guarda cada fila y continua con las filas restantes.
+guardar_accesibilidades([]).
+guardar_accesibilidades([Fila|Resto]) :-
+    guardar_accesibilidad(Fila),
+    guardar_accesibilidades(Resto).
 
 % guarda la accesibilidad como hecho de prolog.
 guardar_accesibilidad(fila(Codigo, Accesible)) :-
@@ -69,7 +83,13 @@ guardar_accesibilidad(fila(Codigo, Accesible)) :-
 % carga los perfiles de turistas.
 cargar_perfiles(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'perfiles_turista.csv', Filas),
-    maplist(guardar_perfil, Filas).
+    guardar_perfiles(Filas).
+
+% guarda cada fila y continua con las filas restantes.
+guardar_perfiles([]).
+guardar_perfiles([Fila|Resto]) :-
+    guardar_perfil(Fila),
+    guardar_perfiles(Resto).
 
 % guarda un perfil como hecho de prolog.
 guardar_perfil(fila(Codigo, Movilidad, Ninos, Hora)) :-
@@ -78,7 +98,13 @@ guardar_perfil(fila(Codigo, Movilidad, Ninos, Hora)) :-
 % carga las categorias asociadas a los puntos.
 cargar_categorias(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'categorias_puntos.csv', Filas),
-    maplist(guardar_categoria, Filas).
+    guardar_categorias(Filas).
+
+% guarda cada fila y continua con las filas restantes.
+guardar_categorias([]).
+guardar_categorias([Fila|Resto]) :-
+    guardar_categoria(Fila),
+    guardar_categorias(Resto).
 
 % guarda una categoria como hecho de prolog.
 guardar_categoria(fila(Codigo, Categoria)) :-
@@ -87,7 +113,13 @@ guardar_categoria(fila(Codigo, Categoria)) :-
 % carga los intereses asociados a los perfiles.
 cargar_intereses(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'intereses_turista.csv', Filas),
-    maplist(guardar_interes, Filas).
+    guardar_intereses(Filas).
+
+% guarda cada fila y continua con las filas restantes.
+guardar_intereses([]).
+guardar_intereses([Fila|Resto]) :-
+    guardar_interes(Fila),
+    guardar_intereses(Resto).
 
 % guarda un interes como hecho de prolog.
 guardar_interes(fila(Codigo, Interes)) :-

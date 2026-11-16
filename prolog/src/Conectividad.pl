@@ -1,4 +1,4 @@
-% 4.3.2 Regla de conexión directa. Responsable: Jefferson Sanchez.
+% 4.3.2 regla de conexion directa. responsable: jefferson sanchez.
 :- module(conectividad, [
     ejecutar_conexion/0,
     ejecutar_alcanzabilidad/0,
@@ -12,32 +12,30 @@
 :- use_module('entradasMenu', [leer_codigo/2]).
 
 % revisa una conexion habilitada en el sentido indicado.
-% Sentido de ida: la conexión está registrada como Origen -> Destino.
+% sentido de ida: la conexion esta registrada como origen -> destino.
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Origen, Destino, Distancia, _, habilitada).
 
-% Sentido de vuelta: la conexión está registrada como Destino -> Origen.
+% sentido de vuelta: la conexion esta registrada como destino -> origen.
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Destino, Origen, Distancia, _, habilitada).
 
-% 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
+% 4.3.3 regla de alcanzabilidad. responsable: jefferson sanchez.
 % inicia la busqueda de un camino entre dos puntos.
-% La lista de visitados empieza con el origen para no volver a él ni
+% la lista de visitados empieza con el origen para no volver a el ni
 % entrar en ciclos.
 alcanzable(Origen, Destino) :-
     buscar_camino(Origen, Destino, [Origen]).
 
-% 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
-% Busca una ruta habilitada sin pasar por el punto excluido.
-% busca un camino habilitado que no pase por el punto excluido.
+% 4.3.4 regla de ruta evitando un punto. responsable: samantha rodriguez.
+% busca una ruta habilitada sin pasar por el punto excluido.
 ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
     Origen \= PuntoEvitado,
     Destino \= PuntoEvitado,
     buscar_ruta(Origen, Destino, PuntoEvitado, [Origen], RutaInvertida),
     reverse(RutaInvertida, Ruta).
 
-% Caso base: el destino es vecino del punto actual.
-% caso base y paso recursivo para la ruta con punto excluido.
+% caso base y paso recursivo de la ruta que evita el punto indicado.
 buscar_ruta(Actual, Destino, _, Visitados, [Destino|Visitados]) :-
     conectado(Actual, Destino, _),
     \+ member(Destino, Visitados).
@@ -47,24 +45,18 @@ buscar_ruta(Actual, Destino, PuntoEvitado, Visitados, Ruta) :-
     \+ member(Vecino, Visitados),
     buscar_ruta(Vecino, Destino, PuntoEvitado, [Vecino|Visitados], Ruta).
 
-% Caso base. El destino está a un tramo.
 % caso base y paso recursivo para comprobar alcanzabilidad.
 buscar_camino(Actual, Destino, Visitados) :-
     conectado(Actual, Destino, _),
-    no_pertenece(Destino, Visitados).
+    \+ member(Destino, Visitados).
 
-% Caso recursivo. Avanza a un vecino y continúa la búsqueda.
+% caso recursivo. avanza a un vecino y continua la busqueda.
 buscar_camino(Actual, Destino, Visitados) :-
     conectado(Actual, Vecino, _),
-    no_pertenece(Vecino, Visitados),
+    \+ member(Vecino, Visitados),
     buscar_camino(Vecino, Destino, [Vecino | Visitados]).
 
-% El punto no esta en la lista de visitados.
-% Ejemplo: no_pertenece('P003', ['P000', 'P001']) es verdadero.
-no_pertenece(_, []).
-no_pertenece(X, [Y | Resto]) :-
-    X \== Y,
-    no_pertenece(X, Resto).
+% member comprueba si el punto ya aparece en la lista de visitados.
 
 % pide los puntos y muestra si existe una conexion directa.
 ejecutar_conexion :-
@@ -86,8 +78,7 @@ ejecutar_alcanzabilidad :-
     ;   format('[NO] ~w no es alcanzable desde ~w.~n', [Destino, Origen])
     ).
 
-% Solicita los códigos y muestra si se encontró la ruta.
-% pide origen, destino y punto excluido para mostrar la ruta.
+% solicita los codigos y muestra la ruta o informa que no existe.
 ejecutar_ruta_evitando :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),

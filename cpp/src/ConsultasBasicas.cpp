@@ -1,5 +1,5 @@
-// 4.1.6 Consultas básicas. Responsable: Samantha Rodriguez.
-// Consulta la información turística registrada en los CSV.
+// 4.1.6 consultas basicas. responsable: samantha rodriguez.
+// consulta la informacion turistica registrada en los csv.
 
 #include "ConsultasBasicas.h"
 
@@ -215,16 +215,30 @@ public:
          << "1. Puntos\n2. Conexiones\n3. Solicitudes por estado\n"
          << "4. Unidades y solicitudes asignadas\n0. Volver\n";
     string opcion = leerTexto("Opcion: ");
-    if (opcion == "1")
+    int numeroOpcion = -1;
+    if (opcion.size() == 1 && opcion[0] >= '0' && opcion[0] <= '9')
+      numeroOpcion = opcion[0] - '0';
+
+    // ejecuta una de las cuatro consultas o regresa al menu principal.
+    switch (numeroOpcion) {
+    case 1:
       consultarPunto();
-    else if (opcion == "2")
+      break;
+    case 2:
       consultarConexion();
-    else if (opcion == "3")
+      break;
+    case 3:
       consultarSolicitud();
-    else if (opcion == "4")
+      break;
+    case 4:
       consultarUnidad();
-    else if (opcion != "0")
+      break;
+    case 0:
+      break;
+    default:
       cout << "Opcion invalida.\n";
+      break;
+    }
   }
 };
 

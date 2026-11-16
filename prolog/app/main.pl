@@ -20,8 +20,10 @@ main :-
 
 % carga los csv y luego inicia el menu.
 ejecutar_carga(CarpetaDatos) :-
+    % format inserta los valores en el mensaje y ~n representa un salto de linea.
     format('Cargando archivos desde: ~w~n~n', [CarpetaDatos]),
-    % 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
+    % catch permite mostrar los errores de lectura sin dejar el proceso a medias.
+    % 4.3.1 lectura de csv y base de conocimiento. responsable: melissa ruiz.
     catch(
         ( cargar_datos(CarpetaDatos, Resumen),
           mostrar_resumen(Resumen),
@@ -32,9 +34,9 @@ ejecutar_carga(CarpetaDatos) :-
         manejar_error(Error)
     ).
 
-% FA01 se carga aparte para que un CSV suyo ausente o mal formado no cierre
-% el modulo. En ese caso el menu abre igual y la opcion 6 solo avisa, porque
-% los datos de FA01 pueden haber quedado a medias.
+% fa01 se carga aparte para que un csv suyo ausente o mal formado no cierre
+% el modulo. en ese caso el menu abre igual y la opcion 6 solo avisa, porque
+% los datos de fa01 pueden haber quedado a medias.
 :- dynamic fa01_cargado/0.
 
 % intenta cargar fa01 sin impedir que abra el menu general.
@@ -58,7 +60,7 @@ mostrar_resumen(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
     Total is Puntos + Conexiones + Unidades + Solicitudes,
     format('~nCarga completada: 4 archivos, ~d registros en total.~n', [Total]).
 
-% Muestra las funcionalidades Prolog y procesa una opción por vez.
+% muestra las funcionalidades prolog y procesa una opcion por vez.
 % lee una opcion y vuelve al menu despues de ejecutarla.
 menu_principal :-
     mostrar_menu,
@@ -77,29 +79,29 @@ mostrar_menu :-
     writeln('6. [FA01] Obtener recomendaciones segun perfil'),
     writeln('0. Volver al menu de C++').
 
-% 4.3.2 Regla de conexión directa. Responsable: Jefferson Sanchez.
+% 4.3.2 regla de conexion directa. responsable: jefferson sanchez.
 ejecutar_opcion("1") :-
     ejecutar_conexion,
     menu_principal.
-% 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
+% 4.3.3 regla de alcanzabilidad. responsable: jefferson sanchez.
 ejecutar_opcion("2") :-
     ejecutar_alcanzabilidad,
     menu_principal.
-% 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
+% 4.3.4 regla de ruta evitando un punto. responsable: samantha rodriguez.
 % ejecuta la regla de ruta que evita un punto.
 ejecutar_opcion("3") :-
     ejecutar_ruta_evitando,
     menu_principal.
-% 4.3.5 Regla de atención de solicitudes. Responsable: Melissa Ruíz.
+% 4.3.5 regla de atencion de solicitudes. responsable: melissa ruiz.
 ejecutar_opcion("4") :-
     ejecutar_atencion,
     menu_principal.
-% 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
+% 4.3.6 regla de solicitudes inaccesibles. responsable: samantha rodriguez.
 % ejecuta la regla de pedidos pendientes sin ruta.
 ejecutar_opcion("5") :-
     ejecutar_pedidos_inaccesibles,
     menu_principal.
-% FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
+% fa01 recomendador explicable de atractivos por perfil. responsable: samantha rodriguez.
 % abre el recomendador fa01 si sus datos se cargaron.
 ejecutar_opcion("6") :-
     (   fa01_cargado
@@ -107,6 +109,7 @@ ejecutar_opcion("6") :-
     ;   writeln('[AVISO] FA01 no esta disponible porque sus datos no se cargaron.')
     ),
     menu_principal.
+% termina el menu de prolog y regresa al modulo de c++.
 ejecutar_opcion("0") :-
     writeln('Regresando al menu de C++...').
 ejecutar_opcion(_) :-
