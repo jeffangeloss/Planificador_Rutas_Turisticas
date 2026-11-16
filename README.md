@@ -42,65 +42,18 @@ Las funcionalidades adicionales pueden incorporar archivos complementarios, como
 
 ## Compilación
 
-### Módulo C++
-
-### Módulo Haskell
-
-### Módulo Prolog
-
-1. Descargar e instalar [SWI-Prolog](https://www.swi-prolog.org/Download.html).
-2. Cerrar y volver a abrir PowerShell.
-
-Existen dos formas de ejecutarlo:
-
-**Opción 1 — agregar SWI-Prolog al `PATH` (recomendada)**
-
-Agregar la carpeta `bin` de la instalación de SWI-Prolog a la variable de entorno `PATH`, cerrar VS Code y volver a abrirlo. Después comprobar:
+Desde la raíz del repositorio, compilar y ejecutar el menú principal de C++:
 
 ```powershell
-swipl --version
+cmake -S cpp -B cpp/build
+cmake --build cpp/build --config Debug
+.\cpp\build\Debug\turismo_cpp.exe
 ```
 
-Desde la raíz del repositorio:
-
-```powershell
-swipl prolog/app/main.pl -- _datos
-```
-
-**Opción 2 — ejecutar sin modificar el `PATH`**
-
-Usar la ruta completa del ejecutable. En una instalación estándar de Windows:
-
-```powershell
-& "C:\Program Files\swipl\bin\swipl.exe" prolog/app/main.pl -- _datos
-```
-
-Si SWI-Prolog se instaló en otra ubicación, se debe reemplazar esa ruta.
-
-Para realizar consultas manuales, entrar a la carpeta `prolog/` y usar una de estas dos formas:
-
-```powershell
-cd prolog
-swipl
-```
-
-O, sin configurar el `PATH`:
-
-```powershell
-cd prolog
-& "C:\Program Files\swipl\bin\swipl.exe"
-```
-
-Cuando aparezca el prompt `?-`, escribir las consultas sin copiar el propio símbolo `?-`:
-
-```prolog
-[src/LecturaCSV].
-cargar_datos('../_datos').
-punto(Codigo, Nombre, Tipo, Zona).
-halt.
-```
-
-La documentación completa del módulo se encuentra en [`prolog/README.md`](prolog/README.md).
+Las opciones 5 y 6 del menú abren los módulos de Haskell y Prolog, por lo que
+Cabal y SWI-Prolog deben estar disponibles en el `PATH`. La preparación del
+entorno se explica en [`INSTALACION.md`](INSTALACION.md), y cada módulo incluye
+sus propios comandos de ejecución en su README.
 
 ## Funcionalidades y responsables
 
