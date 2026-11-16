@@ -97,17 +97,11 @@ private:
   }
 
   int buscarPunto(const string &codigo) const {
-    for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
-      if (puntos[i].getCodigo() == codigo) return i;
-    }
-    return -1;
+    return indicePunto(puntos, codigo);
   }
 
   int buscarSolicitud(const string &codigo) const {
-    for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
-      if (solicitudes[i].getCodigo() == codigo) return i;
-    }
-    return -1;
+    return indiceSolicitud(solicitudes, codigo);
   }
 
   string nombrePunto(const string &codigo) const {
@@ -184,6 +178,18 @@ private:
     return false;
   }
 
+  // Turnos del punto con su capacidad, por ejemplo "10:00 (20), 15:00 (12)",
+  // o texto vacio si el punto no tiene cupos.
+  string turnosConCapacidad(const string &punto) const {
+    string turnos;
+    for (const Cupo &cupo : agenda.getCupos()) {
+      if (cupo.getPunto() != punto) continue;
+      turnos += (turnos.empty() ? "" : ", ") + cupo.getTurno() + " ("
+                + to_string(cupo.getCapacidadMaxima()) + ")";
+    }
+    return turnos;
+  }
+
   void mostrarPromovidas(const vector<string> &promovidas) const {
     for (const string &codigo : promovidas) {
       cout << "[OK] La reserva " << codigo << " pasa de la espera a confirmada ("
@@ -213,6 +219,8 @@ private:
       return;
     }
 
+    // Si la capacidad sube, fijarCupo confirma las reservas en espera que ya
+    // caben; solo en ese caso cambia tambien reservas.csv.
     AgendaCupos anterior = agenda;
     vector<string> promovidas;
     if (!agenda.fijarCupo(punto, turno, capacidad, promovidas)) {
@@ -237,12 +245,7 @@ private:
     }
     const Solicitud &solicitud = solicitudes[s];
     const string punto = solicitud.getDestino();
-    string turnos;
-    for (const Cupo &cupo : agenda.getCupos()) {
-      if (cupo.getPunto() != punto) continue;
-      turnos += (turnos.empty() ? "" : ", ") + cupo.getTurno() + " ("
-                + to_string(cupo.getCapacidadMaxima()) + ")";
-    }
+    string turnos = turnosConCapacidad(punto);
     if (turnos.empty()) {
       cout << "[ERROR] El destino " << nombrePunto(punto)
            << " no tiene turnos con capacidad registrada.\n";
@@ -310,8 +313,10 @@ private:
     for (const Reserva &reserva : agenda.getReservas()) {
       if (reserva.getCodigo() == codigo) antes = reserva;
     }
-    int ocupadosAntes = agenda.ocupados(antes.getPunto(), antes.getFecha(),
-                                        antes.getTurno());
+    const string punto = antes.getPunto();
+    const string fecha = antes.getFecha();
+    const string turno = antes.getTurno();
+    int ocupadosAntes = agenda.ocupados(punto, fecha, turno);
     AgendaCupos anterior = agenda;
     vector<string> promovidas;
     if (antes.getCodigo() != codigo || !agenda.cancelar(codigo, promovidas)) {
@@ -321,9 +326,6 @@ private:
     }
     if (!guardar(anterior, false, true)) return;
 
-    const string punto = antes.getPunto();
-    const string fecha = antes.getFecha();
-    const string turno = antes.getTurno();
     int capacidad = agenda.capacidad(punto, turno);
     cout << "[OK] Reserva " << codigo << " cancelada.";
     if (antes.estaConfirmada()) {
@@ -332,6 +334,9 @@ private:
            << " para la lista de espera.";
     }
     cout << "\n";
+    // Si la cancelada estaba confirmada, cancelar ya recorrio la espera en
+    // orden de llegada y confirmo las que cabian; las que quedan no caben y
+    // conservan su posicion.
     mostrarPromovidas(promovidas);
     int libres = capacidad - agenda.ocupados(punto, fecha, turno);
     for (const Reserva &enCola : agenda.enEspera(punto, fecha, turno)) {
@@ -340,6 +345,23 @@ private:
            << enCola.getOrdenEspera() << ". Ahora hay " << cuposLibres(libres)
            << ".\n";
     }
+  }
+
+  // Fechas distintas y ordenadas en que el turno tiene reservas activas.
+  vector<string> fechasConReservas(const string &punto, const string &turno) const {
+    vector<string> fechas;
+    for (const Reserva &reserva : agenda.getReservas()) {
+      if (reserva.estaActiva() && reserva.getPunto() == punto
+          && reserva.getTurno() == turno) {
+        bool fechaNueva = true;
+        for (const string &fecha : fechas) {
+          if (fecha == reserva.getFecha()) fechaNueva = false;
+        }
+        if (fechaNueva) fechas.push_back(reserva.getFecha());
+      }
+    }
+    sort(fechas.begin(), fechas.end());
+    return fechas;
   }
 
   void reporteOcupacion() const {
@@ -356,16 +378,7 @@ private:
       cout << "\n" << nombrePunto(punto) << ", turno " << turno << ", capacidad "
            << cupo.getCapacidadMaxima() << "\n";
 
-      vector<string> fechas;
-      for (const Reserva &reserva : agenda.getReservas()) {
-        if (reserva.estaActiva() && reserva.getPunto() == punto
-            && reserva.getTurno() == turno
-            && find(fechas.begin(), fechas.end(), reserva.getFecha())
-                   == fechas.end()) {
-          fechas.push_back(reserva.getFecha());
-        }
-      }
-      sort(fechas.begin(), fechas.end());
+      vector<string> fechas = fechasConReservas(punto, turno);
       if (fechas.empty()) cout << "  Sin reservas activas.\n";
       for (const string &fecha : fechas) {
         int ocupados = agenda.ocupados(punto, fecha, turno);

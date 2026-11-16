@@ -2,10 +2,10 @@
 
 // FA03 Reservas de cupos por turno con lista de espera. Responsable: Jefferson Sanchez.
 
-Cupo::Cupo(std::string punto, std::string turno, int capacidadMaxima) {
-  this->punto = punto;
-  this->turno = turno;
-  this->capacidadMaxima = capacidadMaxima;
+Cupo::Cupo(std::string _punto, std::string _turno, int _capacidadMaxima) {
+  punto = _punto;
+  turno = _turno;
+  capacidadMaxima = _capacidadMaxima;
 }
 
 std::string Cupo::getPunto() const { return punto; }

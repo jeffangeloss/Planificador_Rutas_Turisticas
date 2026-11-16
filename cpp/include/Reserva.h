@@ -20,9 +20,9 @@ private:
 
 public:
   Reserva();
-  Reserva(std::string codigo, std::string solicitud, std::string punto,
-          std::string fecha, std::string turno, int personas,
-          EstadoReserva estado, int ordenEspera);
+  Reserva(std::string _codigo, std::string _solicitud, std::string _punto,
+          std::string _fecha, std::string _turno, int _personas,
+          EstadoReserva _estado, int _ordenEspera);
 
   std::string getCodigo() const;
   std::string getSolicitud() const;

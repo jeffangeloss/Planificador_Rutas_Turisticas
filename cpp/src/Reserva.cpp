@@ -1,6 +1,5 @@
 #include "Reserva.h"
 
-#include <array>
 #include <cctype>
 #include <sstream>
 
@@ -9,17 +8,17 @@
 Reserva::Reserva()
     : personas(0), estado(EstadoReserva::Cancelada), ordenEspera(0) {}
 
-Reserva::Reserva(std::string codigo, std::string solicitud, std::string punto,
-                 std::string fecha, std::string turno, int personas,
-                 EstadoReserva estado, int ordenEspera) {
-  this->codigo = codigo;
-  this->solicitud = solicitud;
-  this->punto = punto;
-  this->fecha = fecha;
-  this->turno = turno;
-  this->personas = personas;
-  this->estado = estado;
-  this->ordenEspera = ordenEspera;
+Reserva::Reserva(std::string _codigo, std::string _solicitud, std::string _punto,
+                 std::string _fecha, std::string _turno, int _personas,
+                 EstadoReserva _estado, int _ordenEspera) {
+  codigo = _codigo;
+  solicitud = _solicitud;
+  punto = _punto;
+  fecha = _fecha;
+  turno = _turno;
+  personas = _personas;
+  estado = _estado;
+  ordenEspera = _ordenEspera;
 }
 
 std::string Reserva::getCodigo() const { return codigo; }
@@ -88,11 +87,9 @@ bool fechaValida(const std::string &fecha) {
   int mes = numeroEn(fecha, 5, 7);
   int dia = numeroEn(fecha, 8, 10);
   if (anio < 1 || mes < 1 || mes > 12 || dia < 1) return false;
-  static constexpr std::array<int, 12> diasPorMes = {31, 28, 31, 30, 31, 30,
-                                                     31, 31, 30, 31, 30, 31};
+  const int DIAS_POR_MES[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   bool bisiesto = (anio % 4 == 0 && anio % 100 != 0) || anio % 400 == 0;
-  int maximo = diasPorMes[static_cast<std::size_t>(mes - 1)]
-               + ((mes == 2 && bisiesto) ? 1 : 0);
+  int maximo = DIAS_POR_MES[mes - 1] + ((mes == 2 && bisiesto) ? 1 : 0);
   return dia <= maximo;
 }
 

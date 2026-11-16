@@ -111,6 +111,7 @@ bool AgendaCupos::reservar(const string &solicitud, const string &punto,
     creada = Reserva(codigo, solicitud, punto, fecha, turno, personas,
                      EstadoReserva::Confirmada, 0);
   } else {
+    // No cabe: entra al final de la espera, despues del mayor orden actual.
     int ultimo = 0;
     for (const Reserva &enCola : enEspera(punto, fecha, turno)) {
       ultimo = max(ultimo, enCola.getOrdenEspera());
@@ -122,6 +123,9 @@ bool AgendaCupos::reservar(const string &solicitud, const string &punto,
   return true;
 }
 
+// Politica de promocion: recorre la espera del turno en orden de llegada y
+// confirma cada reserva que cabe en los cupos libres; la que no cabe conserva
+// su lugar y se prueba con la siguiente. Al final renumera la espera desde 1.
 void AgendaCupos::promover(const string &punto, const string &fecha,
                            const string &turno, vector<string> &promovidas) {
   int maximo = capacidad(punto, turno);
@@ -153,6 +157,7 @@ bool AgendaCupos::cancelar(const string &codigo, vector<string> &promovidas) {
   string fecha = reservas[i].getFecha();
   string turno = reservas[i].getTurno();
   reservas[i].cancelar();
+  // Solo una confirmada libera cupos; si estaba en espera basta cerrar su hueco.
   if (liberaCupos) {
     promover(punto, fecha, turno, promovidas);
   } else {
@@ -164,6 +169,8 @@ bool AgendaCupos::cancelar(const string &codigo, vector<string> &promovidas) {
 bool AgendaCupos::fijarCupo(const string &punto, const string &turno,
                             int capacidadNueva, vector<string> &promovidas) {
   if (capacidadNueva <= 0) return false;
+  // 1. Rechaza la capacidad si queda por debajo de lo confirmado en alguna
+  //    fecha o de un grupo en espera, y anota las fechas que tienen espera.
   vector<string> fechas;
   for (const Reserva &reserva : reservas) {
     if (reserva.getPunto() != punto || reserva.getTurno() != turno) continue;
@@ -171,19 +178,23 @@ bool AgendaCupos::fijarCupo(const string &punto, const string &turno,
         || (reserva.estaEnEspera() && reserva.getPersonas() > capacidadNueva)) {
       return false;
     }
-    if (reserva.estaEnEspera()
-        && find(fechas.begin(), fechas.end(), reserva.getFecha())
-               == fechas.end()) {
-      fechas.push_back(reserva.getFecha());
+    if (reserva.estaEnEspera()) {
+      bool fechaNueva = true;
+      for (const string &fecha : fechas) {
+        if (fecha == reserva.getFecha()) fechaNueva = false;
+      }
+      if (fechaNueva) fechas.push_back(reserva.getFecha());
     }
   }
 
+  // 2. Crea el cupo o cambia su capacidad.
   int i = indiceCupo(punto, turno);
   if (i == -1) {
     cupos.push_back(Cupo(punto, turno, capacidadNueva));
   } else {
     cupos[i].cambiarCapacidad(capacidadNueva);
   }
+  // 3. Promueve la espera de cada fecha, de la mas antigua a la mas reciente.
   sort(fechas.begin(), fechas.end());
   for (const string &fecha : fechas) promover(punto, fecha, turno, promovidas);
   return true;
@@ -191,6 +202,8 @@ bool AgendaCupos::fijarCupo(const string &punto, const string &turno,
 
 vector<string> AgendaCupos::normalizar() {
   vector<string> promovidas;
+  // Indice de la primera reserva en espera de cada turno ya promovido, para
+  // promover cada turno (punto, fecha y hora) una sola vez.
   vector<int> turnosVistos;
   for (int i = 0; i < static_cast<int>(reservas.size()); ++i) {
     if (!reservas[i].estaEnEspera()) continue;
@@ -199,7 +212,10 @@ vector<string> AgendaCupos::normalizar() {
     const string turno = reservas[i].getTurno();
     bool visto = false;
     for (int j : turnosVistos) {
-      if (reservas[j].esDelTurno(punto, fecha, turno)) visto = true;
+      if (reservas[j].esDelTurno(punto, fecha, turno)) {
+        visto = true;
+        break;
+      }
     }
     if (visto) continue;
     turnosVistos.push_back(i);

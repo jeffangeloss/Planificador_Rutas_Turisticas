@@ -12,7 +12,7 @@ private:
   int capacidadMaxima;
 
 public:
-  Cupo(std::string punto, std::string turno, int capacidadMaxima);
+  Cupo(std::string _punto, std::string _turno, int _capacidadMaxima);
 
   std::string getPunto() const;
   std::string getTurno() const;

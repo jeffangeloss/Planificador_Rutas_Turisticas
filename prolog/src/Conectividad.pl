@@ -12,14 +12,18 @@
 :- use_module('entradasMenu', [leer_codigo/2]).
 
 % revisa una conexion habilitada en el sentido indicado.
+% Sentido de ida: la conexión está registrada como Origen -> Destino.
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Origen, Destino, Distancia, _, habilitada).
 
+% Sentido de vuelta: la conexión está registrada como Destino -> Origen.
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Destino, Origen, Distancia, _, habilitada).
 
 % 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
 % inicia la busqueda de un camino entre dos puntos.
+% La lista de visitados empieza con el origen para no volver a él ni
+% entrar en ciclos.
 alcanzable(Origen, Destino) :-
     buscar_camino(Origen, Destino, [Origen]).
 
@@ -47,27 +51,30 @@ buscar_ruta(Actual, Destino, PuntoEvitado, Visitados, Ruta) :-
 % caso base y paso recursivo para comprobar alcanzabilidad.
 buscar_camino(Actual, Destino, Visitados) :-
     conectado(Actual, Destino, _),
-    \+ member(Destino, Visitados).
+    no_pertenece(Destino, Visitados).
 
 % Caso recursivo. Avanza a un vecino y continúa la búsqueda.
 buscar_camino(Actual, Destino, Visitados) :-
     conectado(Actual, Vecino, _),
-    \+ member(Vecino, Visitados),
+    no_pertenece(Vecino, Visitados),
     buscar_camino(Vecino, Destino, [Vecino | Visitados]).
+
+% El punto no esta en la lista de visitados.
+% Ejemplo: no_pertenece('P003', ['P000', 'P001']) es verdadero.
+no_pertenece(_, []).
+no_pertenece(X, [Y | Resto]) :-
+    X \== Y,
+    no_pertenece(X, Resto).
 
 % pide los puntos y muestra si existe una conexion directa.
 ejecutar_conexion :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),
     (   conectado(Origen, Destino, Distancia)
-    ->  format(
-            '[SI] Existe conexion directa entre ~w y ~w (~w km).~n',
-            [Origen, Destino, Distancia]
-        )
-    ;   format(
-            '[NO] No existe conexion directa entre ~w y ~w.~n',
-            [Origen, Destino]
-        )
+    ->  format('[SI] Existe conexion directa entre ~w y ~w (~w km).~n',
+            [Origen, Destino, Distancia])
+    ;   format('[NO] No existe conexion directa entre ~w y ~w.~n',
+            [Origen, Destino])
     ).
 
 % pide los puntos y muestra si existe un camino.

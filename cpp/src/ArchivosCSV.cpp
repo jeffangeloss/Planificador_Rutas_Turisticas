@@ -1,6 +1,5 @@
 #include "ArchivosCSV.h"
 
-#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -19,15 +18,14 @@ ArchivosCSV::ArchivosCSV(string carpetaDatos) {
 void ArchivosCSV::cargarDatosIniciales() {
   const vector<string> archivos = {"puntos.csv", "conexiones.csv",
                                    "unidades.csv", "solicitudes.csv"};
-  for (int i = 0; i < static_cast<int>(archivos.size()); ++i) {
-    ifstream archivo(rutaArchivo(archivos[i]).c_str());
-    if (!archivo) cerr << "No se pudo abrir " << rutaArchivo(archivos[i]) << "\n";
+  // Avisa si falta algun CSV; la carga sigue con los archivos que si existen.
+  for (const string &nombre : archivos) {
+    const string ruta = rutaArchivo(nombre);
+    ifstream archivo(ruta.c_str());
+    if (!archivo) cerr << "No se pudo abrir " << ruta << "\n";
   }
 
-  puntos = cargarPuntos();
-  conexiones = cargarConexiones();
-  unidades = cargarUnidades();
-  solicitudes = cargarSolicitudes();
+  actualizarDatos(); // Lee los cuatro CSV y los guarda en memoria.
 
   cout << "Puntos cargados: " << puntos.size() << '\n'
        << "Conexiones cargadas: " << conexiones.size() << '\n'
@@ -47,14 +45,15 @@ string ArchivosCSV::rutaArchivo(const string &nombre) const {
 }
 
 vector<string> ArchivosCSV::separarCampos(const string &linea) const {
+  // Corta en cada coma; los CSV del proyecto no usan comillas.
   vector<string> campos;
   string campo;
-  for (int i = 0; i < static_cast<int>(linea.size()); ++i) {
-    if (linea[i] == ',') {
+  for (char caracter : linea) {
+    if (caracter == ',') {
       campos.push_back(campo);
       campo = "";
-    } else if (linea[i] != '\r') {
-      campo += linea[i];
+    } else if (caracter != '\r') {
+      campo += caracter;
     }
   }
   campos.push_back(campo);
@@ -68,12 +67,15 @@ bool ArchivosCSV::leerFilas(const string &nombre, vector<string> &filas) const {
   string linea;
   getline(archivo, linea); // Saltar encabezado
   while (getline(archivo, linea)) {
+    // Quita el '\r' final que dejan los CSV guardados en Windows.
     if (!linea.empty() && linea.back() == '\r') linea.pop_back();
     if (linea != "") filas.push_back(linea);
   }
   return true;
 }
 
+// Los cargadores pasan i + 2: la fila 1 del archivo es el encabezado e i
+// empieza en 0 (las lineas vacias no se cuentan).
 void ArchivosCSV::mostrarFilaInvalida(const string &archivo,
                                       int numeroFila) const {
   cout << "[ERROR] Fila " << numeroFila << " invalida en " << archivo
@@ -143,6 +145,12 @@ bool ArchivosCSV::convertirEstadoSolicitud(const string &texto,
   return true;
 }
 
+// Cantidad de campos que debe tener cada fila de los CSV de la carga inicial.
+const int CAMPOS_PUNTO = 4;
+const int CAMPOS_CONEXION = 6;
+const int CAMPOS_UNIDAD = 5;
+const int CAMPOS_SOLICITUD = 7;
+
 vector<Punto> ArchivosCSV::cargarPuntos() const {
   vector<Punto> puntosCargados;
   vector<string> filas;
@@ -151,7 +159,7 @@ vector<Punto> ArchivosCSV::cargarPuntos() const {
   for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
     vector<string> campos = separarCampos(filas[i]);
     TipoPunto tipo;
-    if (campos.size() == 4 && convertirTipoPunto(campos[2], tipo)) {
+    if (campos.size() == CAMPOS_PUNTO && convertirTipoPunto(campos[2], tipo)) {
       puntosCargados.push_back(Punto(campos[0], campos[1], tipo, campos[3]));
     } else {
       mostrarFilaInvalida("puntos.csv", i + 2);
@@ -160,6 +168,28 @@ vector<Punto> ArchivosCSV::cargarPuntos() const {
   return puntosCargados;
 }
 
+namespace {
+
+// Lee un numero decimal que ocupa todo el texto, sin caracteres sobrantes
+// (por ejemplo "2.5" vale y "2.5km" no). Para enteros se usa leerEntero,
+// de Reserva.h, que aplica la misma regla.
+bool leerDecimal(const string &texto, double &numero) {
+  stringstream lector(texto);
+  char sobrante;
+  return static_cast<bool>(lector >> numero) && !(lector >> sobrante);
+}
+
+// Dice si texto ya esta en la lista; los cargadores de FA03 lo usan para
+// rechazar claves y codigos repetidos.
+bool estaEnLista(const vector<string> &lista, const string &texto) {
+  for (int i = 0; i < static_cast<int>(lista.size()); i++) {
+    if (lista[i] == texto) return true;
+  }
+  return false;
+}
+
+} // namespace
+
 vector<Conexion> ArchivosCSV::cargarConexiones() const {
   vector<Conexion> conexionesCargadas;
   vector<string> filas;
@@ -167,26 +197,18 @@ vector<Conexion> ArchivosCSV::cargarConexiones() const {
 
   for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
     vector<string> campos = separarCampos(filas[i]);
-    if (campos.size() == 6) {
-      double distancia;
-      int tiempo;
-      EstadoConexion estado;
-      stringstream lectorDistancia(campos[3]);
-      stringstream lectorTiempo(campos[4]);
-      char sobranteDistancia;
-      char sobranteTiempo;
-      bool datosValidos = lectorDistancia >> distancia
-                          && !(lectorDistancia >> sobranteDistancia)
-                          && lectorTiempo >> tiempo
-                          && !(lectorTiempo >> sobranteTiempo)
-                          && distancia >= 0 && tiempo >= 0
-                          && convertirEstadoConexion(campos[5], estado);
-      if (datosValidos) {
-        conexionesCargadas.push_back(Conexion(
-            campos[0], campos[1], campos[2], distancia, tiempo, estado));
-      } else {
-        mostrarFilaInvalida("conexiones.csv", i + 2);
-      }
+    double distancia;
+    int tiempo;
+    EstadoConexion estado;
+    // Primero se cuentan las columnas, asi nunca se lee un campo que no existe.
+    bool datosValidos = campos.size() == CAMPOS_CONEXION
+                        && leerDecimal(campos[3], distancia)
+                        && leerEntero(campos[4], tiempo)
+                        && distancia >= 0 && tiempo >= 0
+                        && convertirEstadoConexion(campos[5], estado);
+    if (datosValidos) {
+      conexionesCargadas.push_back(Conexion(
+          campos[0], campos[1], campos[2], distancia, tiempo, estado));
     } else {
       mostrarFilaInvalida("conexiones.csv", i + 2);
     }
@@ -201,28 +223,19 @@ vector<Unidad> ArchivosCSV::cargarUnidades() const {
 
   for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
     vector<string> campos = separarCampos(filas[i]);
-    if (campos.size() == 5) {
-      TipoUnidad tipo;
-      int capacidad;
-      double costoKm;
-      EstadoUnidad estado;
-      stringstream lectorCapacidad(campos[2]);
-      stringstream lectorCosto(campos[3]);
-      char sobranteCapacidad;
-      char sobranteCosto;
-      bool datosValidos = convertirTipoUnidad(campos[1], tipo)
-                          && lectorCapacidad >> capacidad
-                          && !(lectorCapacidad >> sobranteCapacidad)
-                          && lectorCosto >> costoKm
-                          && !(lectorCosto >> sobranteCosto)
-                          && capacidad > 0 && costoKm >= 0
-                          && convertirEstadoUnidad(campos[4], estado);
-      if (datosValidos) {
-        unidadesCargadas.push_back(
-            Unidad(campos[0], tipo, capacidad, costoKm, estado));
-      } else {
-        mostrarFilaInvalida("unidades.csv", i + 2);
-      }
+    TipoUnidad tipo;
+    int capacidad;
+    double costoKm;
+    EstadoUnidad estado;
+    bool datosValidos = campos.size() == CAMPOS_UNIDAD
+                        && convertirTipoUnidad(campos[1], tipo)
+                        && leerEntero(campos[2], capacidad)
+                        && leerDecimal(campos[3], costoKm)
+                        && capacidad > 0 && costoKm >= 0
+                        && convertirEstadoUnidad(campos[4], estado);
+    if (datosValidos) {
+      unidadesCargadas.push_back(
+          Unidad(campos[0], tipo, capacidad, costoKm, estado));
     } else {
       mostrarFilaInvalida("unidades.csv", i + 2);
     }
@@ -237,24 +250,18 @@ vector<Solicitud> ArchivosCSV::cargarSolicitudes() const {
 
   for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
     vector<string> campos = separarCampos(filas[i]);
-    if (campos.size() == 7) {
-      int cantidadTuristas;
-      Prioridad prioridad;
-      EstadoSolicitud estado;
-      stringstream lectorCantidad(campos[3]);
-      char sobrante;
-      bool datosValidos = lectorCantidad >> cantidadTuristas
-                          && !(lectorCantidad >> sobrante)
-                          && cantidadTuristas > 0
-                          && convertirPrioridad(campos[4], prioridad)
-                          && convertirEstadoSolicitud(campos[5], estado);
-      if (datosValidos) {
-        solicitudesCargadas.push_back(Solicitud(
-            campos[0], campos[1], campos[2], cantidadTuristas, prioridad,
-            estado, campos[6]));
-      } else {
-        mostrarFilaInvalida("solicitudes.csv", i + 2);
-      }
+    int cantidadTuristas;
+    Prioridad prioridad;
+    EstadoSolicitud estado;
+    bool datosValidos = campos.size() == CAMPOS_SOLICITUD
+                        && leerEntero(campos[3], cantidadTuristas)
+                        && cantidadTuristas > 0
+                        && convertirPrioridad(campos[4], prioridad)
+                        && convertirEstadoSolicitud(campos[5], estado);
+    if (datosValidos) {
+      solicitudesCargadas.push_back(Solicitud(
+          campos[0], campos[1], campos[2], cantidadTuristas, prioridad,
+          estado, campos[6]));
     } else {
       mostrarFilaInvalida("solicitudes.csv", i + 2);
     }
@@ -338,25 +345,29 @@ bool ArchivosCSV::archivoExiste(const string &nombre) const {
 // Guarda puntos y conexiones usando archivos temporales.
 namespace {
 
-template <typename EscribirFilas>
-bool guardarCSV(const filesystem::path &destino, EscribirFilas escribirFilas) {
-  const auto marca = chrono::steady_clock::now().time_since_epoch().count();
+// Escritura segura: primero escribe el CSV completo en una carpeta temporal y
+// solo si la escritura no fallo lo mueve sobre el original (rename). Si algo
+// falla, el CSV original queda como estaba. Al final borra lo temporal.
+// contenido es el texto completo del CSV (encabezado y filas) ya armado.
+bool guardarCSV(const filesystem::path &destino, const string &contenido) {
+  const long long marca =
+      chrono::steady_clock::now().time_since_epoch().count();
   const filesystem::path carpetaTemporal = destino.parent_path() /
       (destino.stem().string() + ".tmp." + to_string(marca));
   error_code error;
   if (!filesystem::create_directory(carpetaTemporal, error)) return false;
 
-  const auto temporal = carpetaTemporal / destino.filename();
+  const filesystem::path temporal = carpetaTemporal / destino.filename();
   ofstream archivo(temporal, ios::binary);
   if (!archivo) {
     filesystem::remove(carpetaTemporal, error);
     return false;
   }
 
-  escribirFilas(archivo);
+  archivo << contenido;
   archivo.close();
 
-  if (archivo) {
+  if (archivo) { // Reemplaza el original solo si se escribio todo bien.
     filesystem::rename(temporal, destino, error);
   }
   const bool guardado = archivo && !error;
@@ -369,29 +380,27 @@ bool guardarCSV(const filesystem::path &destino, EscribirFilas escribirFilas) {
 
 bool ArchivosCSV::guardarPuntos(
     const vector<Punto> &puntosActualizados) const {
-  return guardarCSV(rutaArchivo("puntos.csv"),
-                   [this, &puntosActualizados](ostream &archivo) {
-    archivo << "codigo,nombre,tipo,zona\n";
-    for (const Punto &punto : puntosActualizados) {
-      archivo << punto.getCodigo() << ',' << punto.getNombre() << ','
+  ostringstream contenido;
+  contenido << "codigo,nombre,tipo,zona\n";
+  for (const Punto &punto : puntosActualizados) {
+    contenido << punto.getCodigo() << ',' << punto.getNombre() << ','
               << textoTipoPunto(punto.getTipo()) << ',' << punto.getZona()
               << '\n';
-    }
-  });
+  }
+  return guardarCSV(rutaArchivo("puntos.csv"), contenido.str());
 }
 
 bool ArchivosCSV::guardarConexiones(
     const vector<Conexion> &conexionesActualizadas) const {
-  return guardarCSV(rutaArchivo("conexiones.csv"),
-                   [this, &conexionesActualizadas](ostream &archivo) {
-    archivo << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
-    for (const Conexion &conexion : conexionesActualizadas) {
-      archivo << conexion.getCodigo() << ',' << conexion.getOrigen() << ','
+  ostringstream contenido;
+  contenido << "codigo,origen,destino,distancia_km,tiempo_min,estado\n";
+  for (const Conexion &conexion : conexionesActualizadas) {
+    contenido << conexion.getCodigo() << ',' << conexion.getOrigen() << ','
               << conexion.getDestino() << ',' << conexion.getDistancia() << ','
               << conexion.getTiempo() << ','
               << textoEstadoConexion(conexion.getEstado()) << '\n';
-    }
-  });
+  }
+  return guardarCSV(rutaArchivo("conexiones.csv"), contenido.str());
 }
 
 bool ArchivosCSV::existePunto(const string &codigo) const {
@@ -557,6 +566,10 @@ string ArchivosCSV::textoEstadoReserva(EstadoReserva estado) const {
   return "cancelada";
 }
 
+// Cantidad de campos que debe tener cada fila de cupos.csv y reservas.csv.
+const int CAMPOS_CUPO = 3;
+const int CAMPOS_RESERVA = 8;
+
 vector<Cupo> ArchivosCSV::cargarCupos() const {
   vector<Cupo> cupos;
   vector<string> filas;
@@ -566,10 +579,12 @@ vector<Cupo> ArchivosCSV::cargarCupos() const {
   for (int i = 0; i < static_cast<int>(filas.size()); ++i) {
     vector<string> campos = separarCampos(filas[i]);
     int capacidad = 0;
-    string clave = campos.size() == 3 ? campos[0] + " " + campos[1] : "";
-    bool valida = campos.size() == 3 && campos[0] != "" && turnoValido(campos[1])
+    string clave =
+        campos.size() == CAMPOS_CUPO ? campos[0] + " " + campos[1] : "";
+    bool valida = campos.size() == CAMPOS_CUPO && campos[0] != ""
+                  && turnoValido(campos[1])
                   && leerEntero(campos[2], capacidad) && capacidad > 0
-                  && find(claves.begin(), claves.end(), clave) == claves.end();
+                  && !estaEnLista(claves, clave);
     if (valida) {
       claves.push_back(clave);
       cupos.push_back(Cupo(campos[0], campos[1], capacidad));
@@ -591,13 +606,16 @@ vector<Reserva> ArchivosCSV::cargarReservas() const {
     int personas = 0;
     int orden = 0;
     EstadoReserva estado = EstadoReserva::Cancelada;
-    bool valida = campos.size() == 8 && codigoReservaValido(campos[0]) && campos[1] != ""
+    // Ocho campos con formato valido, personas mayor que 0, orden_espera mayor
+    // que 0 solo si esta en_espera (0 en otro caso) y codigo no repetido.
+    bool valida = campos.size() == CAMPOS_RESERVA
+                  && codigoReservaValido(campos[0]) && campos[1] != ""
                   && campos[2] != "" && fechaValida(campos[3])
                   && turnoValido(campos[4]) && leerEntero(campos[5], personas)
                   && personas > 0 && convertirEstadoReserva(campos[6], estado)
                   && leerEntero(campos[7], orden)
                   && (estado == EstadoReserva::EnEspera ? orden > 0 : orden == 0)
-                  && find(codigos.begin(), codigos.end(), campos[0]) == codigos.end();
+                  && !estaEnLista(codigos, campos[0]);
     if (valida) {
       codigos.push_back(campos[0]);
       reservas.push_back(Reserva(campos[0], campos[1], campos[2], campos[3],
@@ -610,28 +628,27 @@ vector<Reserva> ArchivosCSV::cargarReservas() const {
 }
 
 bool ArchivosCSV::guardarCupos(const vector<Cupo> &cupos) const {
-  return guardarCSV(rutaArchivo("cupos.csv"), [&cupos](ostream &archivo) {
-    archivo << "punto,turno,capacidad_maxima\n";
-    for (const Cupo &cupo : cupos) {
-      archivo << cupo.getPunto() << ',' << cupo.getTurno() << ','
+  ostringstream contenido;
+  contenido << "punto,turno,capacidad_maxima\n";
+  for (const Cupo &cupo : cupos) {
+    contenido << cupo.getPunto() << ',' << cupo.getTurno() << ','
               << cupo.getCapacidadMaxima() << '\n';
-    }
-  });
+  }
+  return guardarCSV(rutaArchivo("cupos.csv"), contenido.str());
 }
 
 bool ArchivosCSV::guardarReservas(const vector<Reserva> &reservas) const {
-  return guardarCSV(rutaArchivo("reservas.csv"),
-                    [this, &reservas](ostream &archivo) {
-    archivo << "codigo,solicitud,punto,fecha,turno,personas,estado,"
+  ostringstream contenido;
+  contenido << "codigo,solicitud,punto,fecha,turno,personas,estado,"
                "orden_espera\n";
-    for (const Reserva &reserva : reservas) {
-      archivo << reserva.getCodigo() << ',' << reserva.getSolicitud() << ','
+  for (const Reserva &reserva : reservas) {
+    contenido << reserva.getCodigo() << ',' << reserva.getSolicitud() << ','
               << reserva.getPunto() << ',' << reserva.getFecha() << ','
               << reserva.getTurno() << ',' << reserva.getPersonas() << ','
               << textoEstadoReserva(reserva.getEstado()) << ','
               << reserva.getOrdenEspera() << '\n';
-    }
-  });
+  }
+  return guardarCSV(rutaArchivo("reservas.csv"), contenido.str());
 }
 
 int ArchivosCSV::contarFilas(const string &nombre) const {
