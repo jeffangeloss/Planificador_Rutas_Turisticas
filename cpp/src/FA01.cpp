@@ -17,10 +17,12 @@ class RegistroFA01 {
 private:
   string carpetaDatos;
 
+  // combina la carpeta de datos con el nombre del csv.
   string rutaArchivo(const string &nombre) const {
     return carpetaDatos + "/" + nombre;
   }
 
+  // lee texto ingresado y evita comas dentro del dato.
   string leerTexto(const string &mensaje) const {
     string respuesta;
     while (true) {
@@ -34,6 +36,7 @@ private:
     }
   }
 
+  // separa una fila csv usando la coma como delimitador.
   vector<string> separarCampos(const string &linea) const {
     vector<string> campos;
     string campo;
@@ -49,6 +52,7 @@ private:
     return campos;
   }
 
+  // lee las filas de datos y omite el encabezado del csv.
   bool leerFilas(const string &nombre, vector<string> &filas) const {
     ifstream archivo(rutaArchivo(nombre).c_str());
     if (!archivo)
@@ -62,6 +66,7 @@ private:
     return true;
   }
 
+  // convierte un texto a minusculas para comparar valores.
   string minusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
@@ -71,6 +76,7 @@ private:
     return resultado;
   }
 
+  // convierte codigos a mayusculas antes de buscarlos.
   string mayusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
@@ -80,6 +86,7 @@ private:
     return resultado;
   }
 
+  // quita espacios al inicio y al final de un texto.
   string limpiarEspacios(const string &texto) const {
     int inicio = 0;
     int fin = static_cast<int>(texto.size()) - 1;
@@ -93,6 +100,7 @@ private:
     return resultado;
   }
 
+  // separa valores escritos con punto y coma.
   vector<string> separarLista(const string &texto) const {
     vector<string> valores;
     string valor;
@@ -109,6 +117,7 @@ private:
     return valores;
   }
 
+  // revisa si un codigo ya aparece en el archivo indicado.
   bool existeCodigo(const string &archivo, const string &codigo) const {
     vector<string> filas;
     if (!leerFilas(archivo, filas))
@@ -121,6 +130,7 @@ private:
     return false;
   }
 
+  // actualiza una fila existente o agrega una fila nueva.
   bool guardarFila(const string &nombre, const string &encabezado,
                    const string &codigo, const string &nuevaFila) const {
     vector<string> filas;
@@ -145,6 +155,7 @@ private:
     archivo.close();
     return !archivo.fail();
   }
+  // reemplaza las relaciones anteriores asociadas al codigo.
   bool reemplazarRelaciones(const string &nombre, const string &encabezado,
                             const string &codigo,
                             const vector<string> &valores) const {
@@ -168,6 +179,7 @@ private:
     archivo.close();
     return !archivo.fail();
   }
+  // repite la pregunta hasta recibir si o no.
   string leerSiNo(const string &pregunta) const {
     cout << pregunta << "\n"
          << "  1. Si\n"
@@ -181,6 +193,7 @@ private:
       cout << "Elige 1 (Si) o 2 (No).\n";
     }
   }
+  // comprueba que la hora use el formato hh:mm.
   bool horaValida(const string &hora) const {
     if (hora.size() != 5 || hora[2] != ':')
       return false;
@@ -193,6 +206,7 @@ private:
     return horas < 24 && minutos < 60;
   }
 
+  // comprueba si una lista ya contiene el valor.
   bool contiene(const vector<string> &valores, const string &buscado) const {
     for (int i = 0; i < static_cast<int>(valores.size()); ++i) {
       if (valores[i] == buscado)
@@ -201,6 +215,7 @@ private:
     return false;
   }
 
+  // prepara una lista para mostrarla en pantalla.
   string textoLista(const vector<string> &valores) const {
     if (valores.empty())
       return "ninguno";
@@ -213,6 +228,7 @@ private:
     return texto;
   }
 
+  // obtiene las categorias registradas para los puntos.
   vector<string> obtenerCategorias() const {
     vector<string> filas;
     vector<string> categorias;
@@ -228,6 +244,7 @@ private:
     return categorias;
   }
 
+  // obtiene los intereses que pueden elegirse para un perfil.
   vector<string> obtenerInteresesDisponibles() const {
     vector<string> intereses = obtenerCategorias();
     vector<string> filas;
@@ -254,6 +271,7 @@ private:
       cout << "  - " << valores[i] << "\n";
   }
 
+  // lista los perfiles que ya estan guardados.
   void mostrarPerfilesRegistrados() const {
     vector<string> perfiles;
     vector<string> relaciones;
@@ -280,6 +298,7 @@ private:
     }
   }
 
+  // calcula el siguiente codigo disponible para un perfil.
   string generarCodigoPerfil() const {
     vector<string> filas;
     leerFilas("perfiles_turista.csv", filas);
@@ -326,6 +345,7 @@ private:
     }
   }
 
+  // solicita una hora hasta que tenga formato valido.
   string leerHoraValida(const string &mensaje) const {
     while (true) {
       string hora = leerTexto(mensaje);
@@ -337,6 +357,7 @@ private:
     }
   }
 
+  // lista puntos para que la persona elija uno conocido.
   void mostrarPuntosRegistrados() const {
     vector<string> filas;
     leerFilas("puntos.csv", filas);
@@ -353,6 +374,7 @@ private:
     }
   }
 
+  // lista conexiones para que la persona elija una conocida.
   void mostrarConexionesRegistradas() const {
     vector<string> filas;
     leerFilas("conexiones.csv", filas);
@@ -369,13 +391,16 @@ private:
     }
   }
 
+  // muestra las categorias permitidas para un punto.
   void mostrarCategorias(const vector<string> &categorias) const {
     mostrarValores("Categorias conocidas (puedes agregar otra):", categorias);
   }
 
+  // muestra intereses que se pueden asignar al perfil.
   void mostrarIntereses(const vector<string> &intereses) const {
     mostrarValores("Intereses sugeridos (puedes agregar otro):", intereses);
   }
+  // registra un perfil turistico y sus intereses.
   void registrarPerfil() {
     mostrarPerfilesRegistrados();
     string codigo = generarCodigoPerfil();
@@ -421,6 +446,7 @@ private:
       cout << "El perfil se guardo, pero no se pudieron guardar sus intereses.\n";
     }
   }
+  // registra accesibilidad, horario, seguridad y categorias.
   void registrarCaracteristicasPunto() {
     mostrarPuntosRegistrados();
     string codigo = leerCodigoExistente(
@@ -481,6 +507,7 @@ private:
       cout << "Las caracteristicas se guardaron, pero no se pudieron guardar las categorias.\n";
     }
   }
+  // registra si una conexion permite movilidad accesible.
   void registrarAccesibilidadConexion() {
     mostrarConexionesRegistradas();
     string codigo = leerCodigoExistente(
@@ -511,8 +538,10 @@ private:
     }
   }
 public:
+  // guarda la carpeta donde se encuentran los csv de fa01.
   explicit RegistroFA01(const string &rutaDatos) : carpetaDatos(rutaDatos) {}
 
+  // muestra las opciones de registro y atiende la seleccion.
   void ejecutar() {
     while (true) {
       cout << "\n=== Datos para el recomendador FA01 ===\n"
@@ -537,6 +566,7 @@ public:
 
 } // namespace
 
+// crea el registrador fa01 e inicia su menu.
 void ejecutarFA01(const string &carpetaDatos) {
   RegistroFA01 modulo(carpetaDatos);
   modulo.ejecutar();

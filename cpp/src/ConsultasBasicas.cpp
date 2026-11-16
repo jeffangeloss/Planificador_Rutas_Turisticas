@@ -22,6 +22,7 @@ class MenuConsultas {
 private:
   const ArchivosCSV &archivosCSV;
 
+  // pide texto y evita comas que rompan la lectura csv.
   string leerTexto(const string &mensaje) const {
     string respuesta;
     while (true) {
@@ -34,6 +35,7 @@ private:
     }
   }
 
+  // convierte el criterio a mayusculas para comparar codigos.
   string mayusculas(const string &texto) const {
     string resultado = texto;
     for (int i = 0; i < static_cast<int>(resultado.size()); ++i) {
@@ -43,6 +45,7 @@ private:
     return resultado;
   }
 
+  // muestra los datos principales de una conexion.
   void mostrarConexion(const Conexion &conexion) const {
     cout << " - " << conexion.getCodigo() << " | " << conexion.getOrigen()
          << " -> " << conexion.getDestino() << " | " << conexion.getDistancia()
@@ -50,6 +53,7 @@ private:
          << archivosCSV.textoEstadoConexion(conexion.getEstado()) << "\n";
   }
 
+  // muestra los datos principales de una unidad.
   void mostrarUnidad(const Unidad &unidad) const {
     cout << " - " << unidad.getCodigo() << " | "
          << archivosCSV.textoTipoUnidad(unidad.getTipo()) << " | "
@@ -58,6 +62,7 @@ private:
          << archivosCSV.textoEstadoUnidad(unidad.getEstado()) << "\n";
   }
 
+  // muestra los datos principales de una solicitud.
   void mostrarSolicitud(const Solicitud &solicitud) const {
     cout << solicitud.getCodigo() << " | " << solicitud.getOrigen() << " -> "
          << solicitud.getDestino() << " | " << solicitud.getCantidadTuristas()
@@ -71,12 +76,14 @@ private:
          << "\n";
   }
 
+  // avisa cuando una busqueda no encuentra registros.
   void mostrarNoEncontrado(bool encontrado, const string &tipo,
                            const string &criterio) const {
     if (!encontrado)
       cout << "No se encontro " << tipo << " " << criterio << ".\n";
   }
 
+  // muestra todos los puntos disponibles.
   void mostrarListaPuntos(const vector<Punto> &puntos) const {
     cout << "\nPuntos registrados (" << puntos.size() << "):\n";
     for (int i = 0; i < static_cast<int>(puntos.size()); ++i) {
@@ -86,6 +93,7 @@ private:
     }
   }
 
+  // lista puntos o busca uno por su codigo.
   void consultarPunto() const {
     vector<Punto> puntos = archivosCSV.getPuntos();
     string codigo = mayusculas(leerTexto(
@@ -106,6 +114,7 @@ private:
     mostrarNoEncontrado(encontrado, "punto", codigo);
   }
 
+  // lista conexiones o filtra por codigo de punto o conexion.
   void consultarConexion() const {
     vector<Conexion> conexiones = archivosCSV.getConexiones();
     string criterio = mayusculas(leerTexto(
@@ -128,6 +137,7 @@ private:
     mostrarNoEncontrado(encontrado, "conexion o punto", criterio);
   }
 
+  // muestra las solicitudes vinculadas a una unidad.
   void mostrarSolicitudesUnidad(const vector<Solicitud> &solicitudes,
                                 const string &codigoUnidad) const {
     int cantidad = 0;
@@ -147,6 +157,29 @@ private:
     }
   }
 
+  // lista solicitudes o filtra por codigo o estado.
+  void consultarSolicitud() const {
+    vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
+    string criterio = mayusculas(leerTexto(
+        "Codigo o estado (pendiente/asignada/entregada; Enter: listar todas): "));
+    if (criterio.empty()) {
+      cout << "\nSolicitudes registradas (" << solicitudes.size() << "):\n";
+      for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i)
+        mostrarSolicitud(solicitudes[i]);
+      return;
+    }
+    bool encontrado = false;
+    for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
+      if (solicitudes[i].getCodigo() == criterio ||
+          mayusculas(archivosCSV.textoEstadoSolicitud(
+              solicitudes[i].getEstado())) == criterio) {
+        mostrarSolicitud(solicitudes[i]);
+        encontrado = true;
+      }
+    }
+    mostrarNoEncontrado(encontrado, "solicitud o estado", criterio);
+  }
+  // lista unidades o muestra una unidad con sus solicitudes.
   void consultarUnidad() const {
     vector<Unidad> unidades = archivosCSV.getUnidades();
     vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
@@ -171,30 +204,11 @@ private:
     mostrarNoEncontrado(encontrado, "unidad", codigo);
   }
 
-  void consultarSolicitud() const {
-    vector<Solicitud> solicitudes = archivosCSV.getSolicitudes();
-    string criterio = mayusculas(leerTexto(
-        "Codigo o estado (pendiente/asignada/entregada; Enter: listar todas): "));
-    if (criterio.empty()) {
-      cout << "\nSolicitudes registradas (" << solicitudes.size() << "):\n";
-      for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i)
-        mostrarSolicitud(solicitudes[i]);
-      return;
-    }
-    bool encontrado = false;
-    for (int i = 0; i < static_cast<int>(solicitudes.size()); ++i) {
-      if (solicitudes[i].getCodigo() == criterio ||
-          mayusculas(archivosCSV.textoEstadoSolicitud(
-              solicitudes[i].getEstado())) == criterio) {
-        mostrarSolicitud(solicitudes[i]);
-        encontrado = true;
-      }
-    }
-    mostrarNoEncontrado(encontrado, "solicitud o estado", criterio);
-  }
 public:
-  explicit MenuConsultas(const ArchivosCSV &datos) : archivosCSV(datos) {}
+  // recibe una referencia de solo lectura a los datos csv.
+  MenuConsultas(const ArchivosCSV &datos) : archivosCSV(datos) {}
 
+  // muestra el menu y llama a la consulta elegida.
   void ejecutar() const {
     cout << "\n=== Consultas basicas ===\n"
          << "Escribe un codigo o criterio. Presiona Enter para listar todo.\n"
@@ -216,6 +230,7 @@ public:
 
 } // namespace
 
+// crea el menu y ejecuta una consulta.
 void ejecutarConsultasBasicas(const ArchivosCSV &archivosCSV) {
   MenuConsultas menu(archivosCSV);
   menu.ejecutar();

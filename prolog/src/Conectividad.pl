@@ -11,6 +11,7 @@
 :- use_module('LecturaCSV.pl', [conexion/6]).
 :- use_module('entradasMenu', [leer_codigo/2]).
 
+% revisa una conexion habilitada en el sentido indicado.
 conectado(Origen, Destino, Distancia) :-
     conexion(_, Origen, Destino, Distancia, _, habilitada).
 
@@ -18,11 +19,13 @@ conectado(Origen, Destino, Distancia) :-
     conexion(_, Destino, Origen, Distancia, _, habilitada).
 
 % 4.3.3 Regla de alcanzabilidad. Responsable: Jefferson Sanchez.
+% inicia la busqueda de un camino entre dos puntos.
 alcanzable(Origen, Destino) :-
     buscar_camino(Origen, Destino, [Origen]).
 
 % 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
 % Busca una ruta habilitada sin pasar por el punto excluido.
+% busca un camino habilitado que no pase por el punto excluido.
 ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
     Origen \= PuntoEvitado,
     Destino \= PuntoEvitado,
@@ -30,6 +33,7 @@ ruta_evitando(Origen, Destino, PuntoEvitado, Ruta) :-
     reverse(RutaInvertida, Ruta).
 
 % Caso base: el destino es vecino del punto actual.
+% caso base y paso recursivo para la ruta con punto excluido.
 buscar_ruta(Actual, Destino, _, Visitados, [Destino|Visitados]) :-
     conectado(Actual, Destino, _),
     \+ member(Destino, Visitados).
@@ -40,6 +44,7 @@ buscar_ruta(Actual, Destino, PuntoEvitado, Visitados, Ruta) :-
     buscar_ruta(Vecino, Destino, PuntoEvitado, [Vecino|Visitados], Ruta).
 
 % Caso base. El destino está a un tramo.
+% caso base y paso recursivo para comprobar alcanzabilidad.
 buscar_camino(Actual, Destino, Visitados) :-
     conectado(Actual, Destino, _),
     \+ member(Destino, Visitados).
@@ -50,6 +55,7 @@ buscar_camino(Actual, Destino, Visitados) :-
     \+ member(Vecino, Visitados),
     buscar_camino(Vecino, Destino, [Vecino | Visitados]).
 
+% pide los puntos y muestra si existe una conexion directa.
 ejecutar_conexion :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),
@@ -64,6 +70,7 @@ ejecutar_conexion :-
         )
     ).
 
+% pide los puntos y muestra si existe un camino.
 ejecutar_alcanzabilidad :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),
@@ -73,6 +80,7 @@ ejecutar_alcanzabilidad :-
     ).
 
 % Solicita los códigos y muestra si se encontró la ruta.
+% pide origen, destino y punto excluido para mostrar la ruta.
 ejecutar_ruta_evitando :-
     leer_codigo('Codigo de origen: ', Origen),
     leer_codigo('Codigo de destino: ', Destino),

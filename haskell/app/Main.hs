@@ -11,6 +11,7 @@ import ReporteSolicitudes (ejecutarReporteSolicitudes)
 import SeleccionAtractivos (ejecutarSeleccionAtractivos)
 import System.Environment (getArgs)
 
+-- muestra las opciones disponibles en haskell.
 mostrarMenu :: IO ()
 mostrarMenu = do
   putStrLn ""
@@ -22,6 +23,7 @@ mostrarMenu = do
   putStrLn "0. Volver al menu de C++"
   putStrLn "Opcion:"
 
+-- envia cada opcion a la funcion que la implementa.
 ejecutarOpcion :: String -> [Conexion] -> [Unidad] -> [Solicitud] -> IO ()
 -- 4.2.3 Función de vecinos. Responsable: Melissa Ruíz.
 ejecutarOpcion "1" conexiones _ _ = ejecutarVecinos conexiones
@@ -34,6 +36,7 @@ ejecutarOpcion "4" _ unidades solicitudes = ejecutarReporteSolicitudes unidades 
 ejecutarOpcion "0" _ _ _ = putStrLn "Regresando al menu de C++..."
 ejecutarOpcion _ _ _ _ = putStrLn "[ERROR] Opcion no valida."
 
+-- repite el menu hasta que se elija volver a c++.
 menuPrincipal :: [Conexion] -> [Unidad] -> [Solicitud] -> IO ()
 menuPrincipal conexiones unidades solicitudes = do
   mostrarMenu
@@ -44,11 +47,13 @@ menuPrincipal conexiones unidades solicitudes = do
     then return ()
     else menuPrincipal conexiones unidades solicitudes
 
+-- muestra si se pudo leer cada archivo csv.
 informarLectura :: String -> Maybe [a] -> IO ()
 informarLectura archivo Nothing = putStrLn ("[ERROR] No se pudo leer " ++ archivo ++ ".")
 informarLectura archivo (Just _) = putStrLn ("[OK] " ++ archivo ++ " cargado correctamente.")
 
 -- Informa el resultado de cada archivo y abre el menu solo si los tres se leyeron bien.
+-- abre el menu solo cuando se cargaron los tres archivos.
 iniciarPrograma :: Maybe [Conexion] -> Maybe [Unidad] -> Maybe [Solicitud] -> IO ()
 iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes = do
   informarLectura "conexiones.csv" resultadoConexiones
@@ -59,6 +64,7 @@ iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes = do
     _ -> putStrLn "[ERROR] Corrige los archivos indicados y vuelve a abrir el modulo."
 
 -- 4.2.1 Lectura de archivos CSV. Responsable: Jefferson Sanchez.
+-- lee conexiones, unidades y solicitudes desde la carpeta indicada.
 iniciarMenu :: FilePath -> IO ()
 iniciarMenu carpetaDatos = do
   resultadoConexiones <- leerConexiones (carpetaDatos ++ "/conexiones.csv")
@@ -67,6 +73,7 @@ iniciarMenu carpetaDatos = do
   iniciarPrograma resultadoConexiones resultadoUnidades resultadoSolicitudes
 
 -- 4.2.7 Programa principal y resultado esperado. Responsable: Samantha Rodriguez.
+-- elige el menu turistico o la integracion existente con fa02.
 main :: IO ()
 main = do
   argumentos <- getArgs

@@ -22,6 +22,7 @@ public:
   explicit SistemaTurismo(const string &carpetaDatos)
       : carpetaDatos(carpetaDatos), archivosCSV(carpetaDatos) {}
 
+  // muestra el menu principal y deriva cada opcion.
   void ejecutar() {
     // 4.1.2 Carga inicial. Responsable: Jefferson Sanchez.
     archivosCSV.cargarDatosIniciales();
@@ -82,6 +83,7 @@ private:
   string carpetaDatos;
   ArchivosCSV archivosCSV;
 
+  // inicia el modulo haskell con la carpeta de datos.
   void abrirHaskell() const {
     string comando;
     if (carpetaDatos == "_datos") {
@@ -95,6 +97,7 @@ private:
       cout << "No se pudo iniciar Haskell. Revisa Cabal y la ruta.\n";
   }
 
+  // inicia el modulo prolog con la carpeta de datos.
   void abrirProlog() const {
     string comando;
     if (carpetaDatos == "_datos") {
@@ -108,6 +111,7 @@ private:
   }
 };
 
+// crea el sistema turistico y pone en marcha el menu.
 int main() {
   string carpetaDatos = "_datos";
   ifstream datos((carpetaDatos + "/puntos.csv").c_str());

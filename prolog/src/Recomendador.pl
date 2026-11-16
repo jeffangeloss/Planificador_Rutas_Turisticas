@@ -16,6 +16,7 @@
 :- dynamic categoria_punto/2.
 :- dynamic interes_perfil/2.
 
+% limpia y carga los datos que necesita fa01.
 cargar_recomendador(CarpetaDatos) :-
     validar_archivos(CarpetaDatos,
         ['caracteristicas_puntos.csv', 'accesibilidad_conexiones.csv',
@@ -31,6 +32,7 @@ cargar_recomendador(CarpetaDatos) :-
     cargar_categorias(CarpetaDatos),
     cargar_intereses(CarpetaDatos).
 
+% comprueba que existan los archivos csv requeridos.
 validar_archivos(_, []).
 validar_archivos(CarpetaDatos, [Nombre|Resto]) :-
     directory_file_path(CarpetaDatos, Nombre, Ruta),
@@ -40,46 +42,58 @@ validar_archivos(CarpetaDatos, [Nombre|Resto]) :-
         fail
     ).
 
+% lee las filas de un csv sin incluir su encabezado.
 leer_csv(CarpetaDatos, Nombre, Filas) :-
     directory_file_path(CarpetaDatos, Nombre, Ruta),
     csv_read_file(Ruta, [_Encabezado|Filas],
         [functor(fila), strip(true), convert(true)]).
 
+% carga las caracteristicas registradas para los puntos.
 cargar_caracteristicas(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'caracteristicas_puntos.csv', Filas),
     maplist(guardar_caracteristica, Filas).
 
+% guarda una caracteristica como hecho de prolog.
 guardar_caracteristica(fila(Codigo, Movilidad, Ninos, Dia, Noche, Inicio, Fin)) :-
     assertz(caracteristica_punto(Codigo, Movilidad, Ninos, Dia, Noche, Inicio, Fin)).
 
+% carga la accesibilidad de las conexiones.
 cargar_accesibilidad(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'accesibilidad_conexiones.csv', Filas),
     maplist(guardar_accesibilidad, Filas).
 
+% guarda la accesibilidad como hecho de prolog.
 guardar_accesibilidad(fila(Codigo, Accesible)) :-
     assertz(accesibilidad_conexion(Codigo, Accesible)).
 
+% carga los perfiles de turistas.
 cargar_perfiles(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'perfiles_turista.csv', Filas),
     maplist(guardar_perfil, Filas).
 
+% guarda un perfil como hecho de prolog.
 guardar_perfil(fila(Codigo, Movilidad, Ninos, Hora)) :-
     assertz(perfil_turista(Codigo, Movilidad, Ninos, Hora)).
 
+% carga las categorias asociadas a los puntos.
 cargar_categorias(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'categorias_puntos.csv', Filas),
     maplist(guardar_categoria, Filas).
 
+% guarda una categoria como hecho de prolog.
 guardar_categoria(fila(Codigo, Categoria)) :-
     assertz(categoria_punto(Codigo, Categoria)).
 
+% carga los intereses asociados a los perfiles.
 cargar_intereses(CarpetaDatos) :-
     leer_csv(CarpetaDatos, 'intereses_turista.csv', Filas),
     maplist(guardar_interes, Filas).
 
+% guarda un interes como hecho de prolog.
 guardar_interes(fila(Codigo, Interes)) :-
     assertz(interes_perfil(Codigo, Interes)).
 
+% reune recomendaciones y descartes para un perfil.
 recomendar(CodigoPerfil, Resultados) :-
     perfil_turista(CodigoPerfil, Movilidad, Ninos, Hora),
     findall(
@@ -91,11 +105,13 @@ recomendar(CodigoPerfil, Resultados) :-
         Resultados
     ).
 
+% obtiene los datos del punto y solicita su evaluacion.
 resultado_punto(CodigoPerfil, Codigo, Nombre, Movilidad, Ninos, Hora, Resultado) :-
     caracteristica_punto(Codigo, Accesible, AptoNinos, SeguroDia, SeguroNoche, Inicio, Fin),
     evaluar_punto(CodigoPerfil, Codigo, Nombre, Accesible, AptoNinos,
         SeguroDia, SeguroNoche, Inicio, Fin, Movilidad, Ninos, Hora, Resultado).
 
+% calcula motivos favorables y razones de descarte.
 evaluar_punto(CodigoPerfil, Codigo, Nombre, Accesible, AptoNinos,
     SeguroDia, SeguroNoche, Inicio, Fin, Movilidad, Ninos, Hora, Resultado) :-
     findall(Motivo,
@@ -112,6 +128,7 @@ evaluar_punto(CodigoPerfil, Codigo, Nombre, Accesible, AptoNinos,
     ;   Resultado = descarte(Codigo, Nombre, Descartes)
     ).
 
+% reglas que explican por que un punto coincide con el perfil.
 motivo_favorable(Perfil, Codigo, _, _, _, _, _, _, _, _, _,
     'coincide con un interes del perfil') :-
     interes_perfil(Perfil, Interes),
@@ -134,6 +151,7 @@ motivo_favorable(CodigoPerfil, Codigo, _, _, _, _, _, _, 'si', _, _,
     perfil_turista(CodigoPerfil, 'si', _, _),
     accesible_desde_hotel(Codigo), !.
 
+% reglas que explican por que se descarta un punto.
 motivo_descarte(_, 'no', _, _, _, _, _, 'si', _, _,
     'no cumple el requisito de movilidad reducida').
 motivo_descarte(_, _, 'no', _, _, _, _, _, 'si', _,
@@ -151,10 +169,12 @@ motivo_descarte(Codigo, _, _, _, _, _, _, 'si', _, _,
     'no existe una ruta accesible desde un hotel') :-
     \+ accesible_desde_hotel(Codigo).
 
+% busca una ruta accesible desde algun hotel.
 accesible_desde_hotel(Destino) :-
     punto(Origen, _, hotel, _),
     ruta_accesible(Origen, Destino, [Origen]).
 
+% caso base y pasos recursivos de la ruta accesible.
 ruta_accesible(Actual, Destino, _) :- Actual = Destino.
 ruta_accesible(Actual, Destino, Visitados) :-
     conexion(Codigo, Actual, Vecino, _, _, habilitada),
@@ -167,10 +187,13 @@ ruta_accesible(Actual, Destino, Visitados) :-
     \+ member(Vecino, Visitados),
     ruta_accesible(Vecino, Destino, [Vecino|Visitados]).
 
+% comprueba si una hora esta dentro del horario permitido.
 hora_en_rango(Hora, Inicio, Fin) :- Hora @>= Inicio, Hora @=< Fin.
+% clasifica la hora como dia o noche.
 hora_del_dia(Hora, dia) :- Hora @>= '06:00', Hora @< '18:00'.
 hora_del_dia(Hora, noche) :- Hora @< '06:00' ; Hora @>= '18:00'.
 
+% lista los perfiles que se pueden consultar.
 mostrar_perfiles_disponibles :-
     writeln('Perfiles registrados (codigo | movilidad | ninos | hora | intereses):'),
     (   perfil_turista(_, _, _, _)
@@ -184,6 +207,7 @@ mostrar_perfiles_disponibles :-
     ;   writeln('   No hay perfiles registrados.')
     ).
 
+% pide el codigo de un perfil registrado.
 leer_codigo_perfil(Codigo) :-
     (   perfil_turista(Ejemplo, _, _, _)
     ->  format(atom(Prompt), 'Codigo de perfil (ejemplo: ~w): ', [Ejemplo])
@@ -191,6 +215,7 @@ leer_codigo_perfil(Codigo) :-
     ),
     leer_codigo(Prompt, Codigo).
 
+% guia la consulta del recomendador desde la terminal.
 ejecutar_recomendador :-
     nl,
     writeln('=== Recomendador de atractivos FA01 ==='),
@@ -204,6 +229,7 @@ ejecutar_recomendador :-
     ;   writeln('[INFO] Registra un perfil desde el menu FA01 de C++.')
     ).
 
+% separa y presenta los recomendados y descartados.
 mostrar_resultados(CodigoPerfil, Resultados) :-
     findall(
         recomendacion(Codigo, Nombre, Puntaje, Motivos),
@@ -224,6 +250,7 @@ mostrar_resultados(CodigoPerfil, Resultados) :-
     mostrar_seccion_recomendaciones(Recomendaciones),
     mostrar_seccion_descartes(Descartes).
 
+% muestra la lista de recomendaciones o informa si esta vacia.
 mostrar_seccion_recomendaciones([]) :-
     nl,
     writeln('No hay lugares que cumplan el perfil.').
@@ -233,6 +260,7 @@ mostrar_seccion_recomendaciones(Resultados) :-
     writeln('--- Lugares recomendados ---'),
     forall(member(Resultado, Resultados), mostrar_resultado(Resultado)).
 
+% muestra los descartes o informa si no hay ninguno.
 mostrar_seccion_descartes([]) :-
     nl,
     writeln('No se descartaron atractivos.').
@@ -242,6 +270,7 @@ mostrar_seccion_descartes(Resultados) :-
     writeln('--- Lugares descartados y motivos ---'),
     forall(member(Resultado, Resultados), mostrar_resultado(Resultado)).
 
+% presenta un lugar recomendado o descartado.
 mostrar_resultado(recomendacion(Codigo, Nombre, Puntaje, Motivos)) :-
     format('[RECOMENDADO] ~w - ~w (coincidencias: ~d)~n',
         [Codigo, Nombre, Puntaje]),
@@ -250,6 +279,7 @@ mostrar_resultado(descarte(Codigo, Nombre, Razones)) :-
     format('[DESCARTADO] ~w - ~w~n', [Codigo, Nombre]),
     mostrar_motivos(Razones, '-').
 
+% imprime uno por uno los motivos del resultado.
 mostrar_motivos([], _).
 mostrar_motivos([Motivo|Resto], Simbolo) :-
     format('  ~w ~w~n', [Simbolo, Motivo]),

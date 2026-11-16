@@ -15,6 +15,7 @@
 
 using namespace std;
 
+// cuenta registros y muestra el resumen general.
 void mostrarReporteGeneral(const ArchivosCSV &archivosCSV) {
   vector<Punto> puntos = archivosCSV.getPuntos();
   vector<Conexion> conexiones = archivosCSV.getConexiones();

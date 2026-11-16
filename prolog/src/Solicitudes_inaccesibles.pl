@@ -8,6 +8,7 @@
 :- use_module('LecturaCSV', [solicitud/7]).
 :- use_module('Conectividad', [alcanzable/2]).
 
+% reune pedidos pendientes cuyo destino no es alcanzable.
 pedidos_inaccesibles(Pedidos) :-
     findall(
         solicitud(Codigo, Origen, Destino, Cantidad, Prioridad, Estado, Unidad),
@@ -18,6 +19,7 @@ pedidos_inaccesibles(Pedidos) :-
         Pedidos
     ).
 
+% muestra los pedidos pendientes que no tienen ruta.
 ejecutar_pedidos_inaccesibles :-
     pedidos_inaccesibles(Pedidos),
     (   Pedidos = []

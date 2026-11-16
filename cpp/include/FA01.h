@@ -7,6 +7,7 @@
 #include <string>
 
 // Inicia el menu de registro de datos que consume el recomendador FA01.
+// abre el menu para registrar los datos que usa fa01.
 void ejecutarFA01(const std::string &carpetaDatos);
 
 #endif

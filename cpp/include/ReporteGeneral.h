@@ -7,6 +7,7 @@
 class ArchivosCSV;
 
 // Muestra los totales generales de puntos, conexiones, unidades y solicitudes.
+// muestra el resumen general del sistema.
 void mostrarReporteGeneral(const ArchivosCSV &archivosCSV);
 
 #endif

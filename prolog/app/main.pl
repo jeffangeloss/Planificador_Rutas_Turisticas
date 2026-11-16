@@ -9,6 +9,7 @@
 :- use_module('../src/Solicitudes_inaccesibles', [ejecutar_pedidos_inaccesibles/0]).
 :- use_module('../src/Recomendador', [cargar_recomendador/1, ejecutar_recomendador/0]).
 
+% lee la carpeta de datos indicada al iniciar prolog.
 main :-
     current_prolog_flag(argv, Argumentos),
     (   Argumentos = [CarpetaDatos|_]
@@ -17,6 +18,7 @@ main :-
         halt(1)
     ).
 
+% carga los csv y luego inicia el menu.
 ejecutar_carga(CarpetaDatos) :-
     format('Cargando archivos desde: ~w~n~n', [CarpetaDatos]),
     % 4.3.1 Lectura de CSV y base de conocimiento. Responsable: Melissa Ruíz.
@@ -35,6 +37,7 @@ ejecutar_carga(CarpetaDatos) :-
 % los datos de FA01 pueden haber quedado a medias.
 :- dynamic fa01_cargado/0.
 
+% intenta cargar fa01 sin impedir que abra el menu general.
 cargar_fa01(CarpetaDatos) :-
     retractall(fa01_cargado),
     catch(cargar_recomendador(CarpetaDatos), Error,
@@ -46,6 +49,7 @@ cargar_fa01(CarpetaDatos) :-
 cargar_fa01(_) :-
     writeln('[AVISO] No se cargaron los datos de FA01; la opcion 6 no estara disponible.').
 
+% muestra cuantos registros se cargaron de cada csv.
 mostrar_resumen(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
     format('[OK] puntos.csv: ~d registros~n', [Puntos]),
     format('[OK] conexiones.csv: ~d registros~n', [Conexiones]),
@@ -55,11 +59,13 @@ mostrar_resumen(resumen(Puntos, Conexiones, Unidades, Solicitudes)) :-
     format('~nCarga completada: 4 archivos, ~d registros en total.~n', [Total]).
 
 % Muestra las funcionalidades Prolog y procesa una opción por vez.
+% lee una opcion y vuelve al menu despues de ejecutarla.
 menu_principal :-
     mostrar_menu,
     leer_entrada('Opcion: ', Opcion),
     ejecutar_opcion(Opcion).
 
+% presenta las funcionalidades disponibles en prolog.
 mostrar_menu :-
     nl,
     writeln('=== Modulo Prolog ==='),
@@ -80,6 +86,7 @@ ejecutar_opcion("2") :-
     ejecutar_alcanzabilidad,
     menu_principal.
 % 4.3.4 Regla de ruta evitando un punto. Responsable: Samantha Rodriguez.
+% ejecuta la regla de ruta que evita un punto.
 ejecutar_opcion("3") :-
     ejecutar_ruta_evitando,
     menu_principal.
@@ -88,10 +95,12 @@ ejecutar_opcion("4") :-
     ejecutar_atencion,
     menu_principal.
 % 4.3.6 Regla de solicitudes inaccesibles. Responsable: Samantha Rodriguez.
+% ejecuta la regla de pedidos pendientes sin ruta.
 ejecutar_opcion("5") :-
     ejecutar_pedidos_inaccesibles,
     menu_principal.
 % FA01 Recomendador explicable de atractivos por perfil. Responsable: Samantha Rodriguez.
+% abre el recomendador fa01 si sus datos se cargaron.
 ejecutar_opcion("6") :-
     (   fa01_cargado
     ->  ejecutar_recomendador
@@ -104,6 +113,7 @@ ejecutar_opcion(_) :-
     writeln('[ERROR] Opcion no valida.'),
     menu_principal.
 
+% muestra el detalle si falla la carga de archivos.
 manejar_error(Error) :-
     message_to_string(Error, Detalle),
     format(

@@ -7,6 +7,7 @@
 class ArchivosCSV;
 
 // Ejecuta el menu de consultas sobre los datos cargados desde los CSV.
+// inicia el menu de consultas con los datos ya cargados.
 void ejecutarConsultasBasicas(const ArchivosCSV &archivosCSV);
 
 #endif
